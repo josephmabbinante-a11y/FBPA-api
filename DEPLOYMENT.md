@@ -31,14 +31,14 @@ The server supports graceful shutdown via system signals (SIGTERM, SIGINT).
 
 ### Restarting the Server
 
-**Local restart:**
-```bash
-npm run restart
-```
-
 **On Render:**
 - Manual restart: Use the "Manual Deploy" button in Render dashboard
+- Or use the "Restart" button in the service settings
 - Automatic restart: Push changes to the main branch
+
+**For local development:**
+- Use `npm run dev` with nodemon for automatic restart on file changes
+- Or manually stop (Ctrl+C) and restart with `npm start`
 
 ### Health Checks
 

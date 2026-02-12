@@ -146,10 +146,13 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 // Handle uncaught errors
 process.on('uncaughtException', (err) => {
   console.error('[error] Uncaught exception:', err);
-  gracefulShutdown('uncaughtException');
+  console.error('[error] Stack:', err.stack);
+  // Exit immediately with error code for uncaught exceptions
+  process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-  gracefulShutdown('unhandledRejection');
+  // Exit immediately with error code for unhandled rejections
+  process.exit(1);
 });
