@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register User</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    form { max-width: 400px; margin: auto; }
+    label { display: block; margin-top: 1em; }
+    input { width: 100%; padding: 0.5em; margin-top: 0.2em; }
+    button { margin-top: 1em; padding: 0.7em 1.5em; }
+    .message { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h2>Register User</h2>
+  <form id="registerForm">
+    <label>Email
+      <input type="email" name="email" required>
+    </label>
+    <label>Password
+      <input type="password" name="password" required>
+    </label>
+    <label>Name
+      <input type="text" name="name">
+    </label>
+    <button type="submit">Register</button>
+    <div class="message" id="message"></div>
+  </form>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = this.email.value;
+      const password = this.password.value;
+      const name = this.name.value;
+      const res = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name })
+      });
+      const msg = document.getElementById('message');
+      if (res.ok) {
+        msg.textContent = 'Registration successful!';
+        msg.style.color = 'green';
+      } else {
+        const data = await res.json();
+        msg.textContent = data.error || 'Registration failed.';
+        msg.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
