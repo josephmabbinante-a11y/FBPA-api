@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opscale Portal Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #18191A;
+      color: #fff;
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background: #23272F;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+      padding: 2.5em 2em 2em 2em;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-container h2 {
+      margin-bottom: 0.2em;
+      font-weight: 600;
+      font-size: 1.5em;
+    }
+    .login-container .subtitle {
+      color: #b0b3b8;
+      font-size: 1em;
+      margin-bottom: 1.5em;
+    }
+    .login-container label {
+      display: block;
+      text-align: left;
+      margin-top: 1em;
+      font-size: 0.98em;
+      color: #b0b3b8;
+    }
+    .login-container input {
+      width: 100%;
+      padding: 0.7em;
+      margin-top: 0.2em;
+      border-radius: 8px;
+      border: 1px solid #444950;
+      background: #18191A;
+      color: #fff;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    .login-container button {
+      width: 100%;
+      margin-top: 1.5em;
+      padding: 0.9em;
+      background: #1877F2;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-container button:hover {
+      background: #145db2;
+    }
+    .login-container .message {
+      margin-top: 1em;
+      color: #ff4d4f;
+      font-weight: 500;
+    }
+    .login-container .logo {
+      margin-bottom: 1em;
+    }
+    .login-container .logo img {
+      width: 48px;
+      height: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/microsoftazure.svg" alt="Opscale Logo" />
+    </div>
+    <h2>Opscale Portal</h2>
+    <div class="subtitle">Sign in to continue</div>
+    <form id="loginForm">
+      <label>Email
+        <input type="email" name="email" required autocomplete="username">
+      </label>
+      <label>Password
+        <input type="password" name="password" required autocomplete="current-password">
+      </label>
+      <button type="submit">Sign In</button>
+      <div class="message" id="message"></div>
+      <div style="margin-top:1em;">
+        <a href="/register.html" style="color:#1877F2;text-decoration:none;font-size:0.98em;">Sign up</a>
+        &nbsp;|&nbsp;
+        <a href="#" style="color:#1877F2;text-decoration:none;font-size:0.98em;opacity:0.6;cursor:not-allowed;">Forgot password?</a>
+        <br><br>
+        <span style="font-size:0.95em;color:#b0b3b8;">You can use this login page for both local (localhost:4000) and production (hdhtransport.com) environments. Just ensure the backend API URL is correct in production.</span>
+      </div>
+    </form>
+    <div style="margin-top:1.5em;font-size:0.95em;color:#b0b3b8;">By signing in you agree to the Opscale terms and privacy policy.</div>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = this.email.value;
+      const password = this.password.value;
+      // Change this URL for production if needed
+      const apiUrl = window.location.hostname === 'localhost' ? '/api/v1/auth/login' : 'https://hdhtransport.com/api/v1/auth/login';
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const msg = document.getElementById('message');
+      if (res.ok) {
+        const data = await res.json();
+        msg.textContent = 'Login successful!';
+        msg.style.color = 'green';
+        // Optionally, store token: localStorage.setItem('token', data.token);
+      } else {
+        const data = await res.json();
+        msg.textContent = data.error || 'Invalid email or password';
+        msg.style.color = '#ff4d4f';
+      }
+    });
+  </script>
+</body>
+</html>
