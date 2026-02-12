@@ -21,11 +21,11 @@ UserSchema.pre('save', async function (next) {
     this.password = await bcryptjs.hash(this.password, 10);
   }
   
-  // Auto-populate lowercase fields if not set
-  if (this.email && !this.emailLower) {
+  // Auto-populate or update lowercase fields when source fields change
+  if (this.email && (this.isModified('email') || !this.emailLower)) {
     this.emailLower = this.email.toLowerCase();
   }
-  if (this.name && !this.nameLower) {
+  if (this.name && (this.isModified('name') || !this.nameLower)) {
     this.nameLower = this.name.toLowerCase();
   }
   
@@ -60,10 +60,10 @@ const CustomerSchema = new mongoose.Schema({
 
 // Pre-save hook for auto-populating lowercase fields
 CustomerSchema.pre('save', function (next) {
-  if (this.name && !this.nameLower) {
+  if (this.name && (this.isModified('name') || !this.nameLower)) {
     this.nameLower = this.name.toLowerCase();
   }
-  if (this.email && !this.emailLower) {
+  if (this.email && (this.isModified('email') || !this.emailLower)) {
     this.emailLower = this.email.toLowerCase();
   }
   next();
@@ -92,7 +92,7 @@ const CarrierSchema = new mongoose.Schema({
 
 // Pre-save hook for auto-populating lowercase fields
 CarrierSchema.pre('save', function (next) {
-  if (this.name && !this.nameLower) {
+  if (this.name && (this.isModified('name') || !this.nameLower)) {
     this.nameLower = this.name.toLowerCase();
   }
   next();
