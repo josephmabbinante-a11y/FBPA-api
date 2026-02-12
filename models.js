@@ -1,24 +1,27 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+import User from './models/User.js';
+import Invoice from './models/Invoice.js';
+import Audit from './models/Audit.js';
+import Exception from './models/Exception.js';
 
-const UserSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+// Create placeholder models for Customer and Carrier since they're imported but don't have model files yet
+import mongoose from 'mongoose';
+
+const customerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String },
+  phone: { type: String },
+  address: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
-});
+}, { timestamps: true });
 
-// Pre-save hook for password hashing
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+const carrierSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String },
+  phone: { type: String },
+  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+}, { timestamps: true });
 
-// Method to compare passwords
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
+const Customer = mongoose.model('Customer', customerSchema);
+const Carrier = mongoose.model('Carrier', carrierSchema);
 
-module.exports = mongoose.model('User', UserSchema);
+export { User, Invoice, Audit, Exception, Customer, Carrier };
