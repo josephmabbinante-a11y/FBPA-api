@@ -112,6 +112,47 @@ if (process.env.SERVE_STATIC === 'true') {
   });
 }
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`FBPA API server running on http://localhost:${PORT}`);
+});
+
+// Graceful shutdown handling
+const gracefulShutdown = async (signal) => {
+  console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
+  
+  // Stop accepting new connections
+  server.close(() => {
+    console.log('[shutdown] HTTP server closed');
+  });
+  
+  // Close database connections
+  if (mongoose.connection.readyState !== 0) {
+    try {
+      await mongoose.connection.close();
+      console.log('[shutdown] MongoDB connection closed');
+    } catch (err) {
+      console.error('[shutdown] Error closing MongoDB connection:', err.message);
+    }
+  }
+  
+  console.log('[shutdown] Graceful shutdown complete');
+  process.exit(0);
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (err) => {
+  console.error('[error] Uncaught exception:', err);
+  console.error('[error] Stack:', err.stack);
+  // Exit immediately with error code for uncaught exceptions
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
+  // Exit immediately with error code for unhandled rejections
+  process.exit(1);
 });

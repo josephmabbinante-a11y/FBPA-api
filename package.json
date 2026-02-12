@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "health": "curl -s http://localhost:${PORT:-4000}/api/health | jq . || curl -s http://localhost:${PORT:-4000}/api/health"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -12,7 +14,10 @@
     "express-validator": "^7.3.1",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^9.2.0"
+    "mongoose": "^9.2.0",
+    "multer": "^2.0.2",
+    "csv-parse": "^5.6.0",
+    "nodemailer": "^7.0.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
