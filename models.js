@@ -6,18 +6,29 @@ const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   username: { type: String },
   email: { type: String, required: true, unique: true },
-  emailLower: { type: String, lowercase: true },
+  emailLower: { type: String },
   password: { type: String, required: true },
   name: { type: String },
-  nameLower: { type: String, lowercase: true },
+  nameLower: { type: String },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
 });
 
-// Pre-save hook for password hashing
+// Pre-save hook for password hashing and auto-populating lowercase fields
 UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcryptjs.hash(this.password, 10);
+  // Hash password if modified
+  if (this.isModified('password')) {
+    this.password = await bcryptjs.hash(this.password, 10);
+  }
+  
+  // Auto-populate lowercase fields if not set
+  if (this.email && !this.emailLower) {
+    this.emailLower = this.email.toLowerCase();
+  }
+  if (this.name && !this.nameLower) {
+    this.nameLower = this.name.toLowerCase();
+  }
+  
   next();
 });
 
@@ -27,17 +38,16 @@ UserSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 // Indexes for User
-UserSchema.index({ id: 1 }, { unique: true });
-UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ emailLower: 1 });
+UserSchema.index({ nameLower: 1 });
 
 // Customer Schema
 const CustomerSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  nameLower: { type: String, lowercase: true },
+  nameLower: { type: String },
   email: { type: String },
-  emailLower: { type: String, lowercase: true },
+  emailLower: { type: String },
   phone: { type: String },
   company: { type: String },
   industry: { type: String },
@@ -48,8 +58,18 @@ const CustomerSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+// Pre-save hook for auto-populating lowercase fields
+CustomerSchema.pre('save', function (next) {
+  if (this.name && !this.nameLower) {
+    this.nameLower = this.name.toLowerCase();
+  }
+  if (this.email && !this.emailLower) {
+    this.emailLower = this.email.toLowerCase();
+  }
+  next();
+});
+
 // Indexes for Customer
-CustomerSchema.index({ id: 1 }, { unique: true });
 CustomerSchema.index({ nameLower: 1 });
 CustomerSchema.index({ emailLower: 1 });
 
@@ -57,7 +77,7 @@ CustomerSchema.index({ emailLower: 1 });
 const CarrierSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  nameLower: { type: String, lowercase: true },
+  nameLower: { type: String },
   mcNumber: { type: String },
   mcNumberNormalized: { type: String },
   email: { type: String },
@@ -70,8 +90,15 @@ const CarrierSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+// Pre-save hook for auto-populating lowercase fields
+CarrierSchema.pre('save', function (next) {
+  if (this.name && !this.nameLower) {
+    this.nameLower = this.name.toLowerCase();
+  }
+  next();
+});
+
 // Indexes for Carrier
-CarrierSchema.index({ id: 1 }, { unique: true });
 CarrierSchema.index({ nameLower: 1 });
 CarrierSchema.index({ mcNumberNormalized: 1 });
 
@@ -98,7 +125,6 @@ const InvoiceSchema = new mongoose.Schema({
 });
 
 // Indexes for Invoice
-InvoiceSchema.index({ id: 1 }, { unique: true });
 InvoiceSchema.index({ invoiceNumber: 1 });
 InvoiceSchema.index({ customerId: 1 });
 InvoiceSchema.index({ carrierId: 1 });
@@ -124,7 +150,6 @@ const ExceptionSchema = new mongoose.Schema({
 });
 
 // Indexes for Exception
-ExceptionSchema.index({ id: 1 }, { unique: true });
 ExceptionSchema.index({ invoiceId: 1 });
 ExceptionSchema.index({ status: 1 });
 
