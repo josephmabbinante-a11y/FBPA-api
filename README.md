@@ -118,7 +118,7 @@ The API uses MongoDB for data persistence. If `MONGODB_URI` is not configured, t
 ## CORS Configuration
 
 By default, the following origins are allowed:
-- http://localhost:5173-5179
+- http://localhost:5173 - 5179
 
 Additional origins can be configured via the `CORS_ORIGIN` environment variable (comma-separated).
 
