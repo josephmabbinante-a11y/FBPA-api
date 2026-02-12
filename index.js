@@ -1,140 +1,14 @@
-import express from 'express';
-import cors from 'cors';
-import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import customersRouter from './customers.js';
-import carriersRouter from './carriers.js';
-import invoicesRouter from './invoices.js';
-import exceptionsRouter from './exceptions.js';
-import messagesRouter from './messages.js';
-import rateLogicRouter from './rateLogic.js';
-import dashboardRouter from './dashboard.js';
-import reportsRouter from './reports.js';
-import uploadsRouter from './uploads.js';
-import invoiceImagesRouter from './invoiceImages.js';
-import ediRouter from './edi.js';
-
-dotenv.config();
+const express = require('express');
+const authRouter = require('./auth.js');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
-const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const distPath = path.resolve(__dirname, '../dist');
 
-const defaultAllowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://localhost:5176',
-  'http://localhost:5177',
-  'http://localhost:5178',
-  'http://localhost:5179',
-];
-
-const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
-
-const hasUriPlaceholders = /<[^>]+>/.test(MONGODB_URI);
-
-if (MONGODB_URI && !hasUriPlaceholders) {
-  mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 8000,
-  })
-    .then(() => console.log('[mongodb] Connected'))
-    .catch((err) => console.error('[mongodb] Connection error:', err.message));
-
-  mongoose.connection.on('disconnected', () => {
-    console.warn('[mongodb] Disconnected');
-  });
-} else if (hasUriPlaceholders) {
-  console.warn('[mongodb] MONGODB_URI contains placeholder brackets. Update .env with real credentials.');
-} else {
-  console.warn('[mongodb] MONGODB_URI not set, running without database');
-}
-
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error(`CORS origin not allowed: ${origin}`));
-  },
-  credentials: true,
-}));
 app.use(express.json());
-app.use('/api/customers', customersRouter);
-app.use('/api/carriers', carriersRouter);
-app.use('/api/invoices', invoicesRouter);
-app.use('/api/exceptions', exceptionsRouter);
-app.use('/api/messages', messagesRouter);
-app.use('/api/rate-logic', rateLogicRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/reports', reportsRouter);
-app.use('/api/uploads', uploadsRouter);
-app.use('/api/invoice-images', invoiceImagesRouter);
-app.use('/api/edi', ediRouter);
 
-app.get('/api/health', (req, res) => {
-  const dbState = mongoose.connection.readyState;
-  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
-  res.json({
-    ok: true,
-    dbStatus,
-    uptimeSec: Math.round(process.uptime()),
-    timestamp: new Date().toISOString(),
-  });
-});
+// Use the auth router instead of inline login endpoint
+app.use('/auth', authRouter);
 
-const users = [
-  { id: 'u-1', email: 'admin@opscale.ai', role: 'admin', password: 'password123' },
-];
-
-app.post('/auth/login', (req, res) => {
-  const { email, password } = req.body || {};
-  const allowAny = process.env.DEV_AUTH_ALLOW_ANY === 'true';
-  const user = users.find((u) => u.email === email && u.password === password);
-  const authedUser =
-    user ||
-    (allowAny && email && password
-      ? { id: `u-${Date.now()}`, email, role: 'admin' }
-      : null);
-  if (!authedUser) return res.status(401).json({ error: 'Invalid credentials' });
-
-  const accessToken = jwt.sign(
-    { sub: authedUser.id, email: authedUser.email, role: authedUser.role },
-    JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-
-  return res.json({
-    accessToken,
-    user: { id: authedUser.id, email: authedUser.email, role: authedUser.role },
-  });
-});
-
-if (process.env.SERVE_STATIC === 'true') {
-  app.use(express.static(distPath));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-      next();
-      return;
-    }
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Auth server running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
