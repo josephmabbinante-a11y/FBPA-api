@@ -113,5 +113,5 @@ if (process.env.SERVE_STATIC === 'true') {
 }
 
 app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${4000}`);
+  console.log(`FBPA API server running on http://localhost:${PORT}`);
 });
