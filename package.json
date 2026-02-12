@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "restart": "npm run stop && npm run start",
+    "stop": "pkill -f 'node index.js' || echo 'No process to stop'",
+    "health": "curl -s http://localhost:${PORT:-4000}/api/health | jq . || curl -s http://localhost:${PORT:-4000}/api/health"
   },
   "dependencies": {
     "cors": "^2.8.6",
