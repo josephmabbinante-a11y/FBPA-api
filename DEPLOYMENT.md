@@ -68,6 +68,37 @@ JWT_EXPIRES_IN=7d    # 7 days
 JWT_EXPIRES_IN=30m   # 30 minutes
 ```
 
+#### `SERVE_STATIC`
+Whether to serve static files from the server (default: false)
+
+Set to `true` if you want this API server to also serve your frontend build files.
+
+#### Email/SMTP Configuration (Optional)
+
+If you want to enable email notifications for invoice updates and messages:
+
+**`SMTP_HOST`** - Your SMTP server hostname
+```
+SMTP_HOST=smtp.gmail.com
+```
+
+**`SMTP_USER`** - Your email address or SMTP username
+```
+SMTP_USER=your-email@gmail.com
+```
+
+**`SMTP_PASS`** - Your SMTP password or app-specific password
+```
+SMTP_PASS=your-app-password
+```
+
+**`SMTP_FROM`** - The "from" address for sent emails
+```
+SMTP_FROM=noreply@audit-iq.com
+```
+
+**Note:** For Gmail, you need to use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password.
+
 ---
 
 ## Deployment Platforms
