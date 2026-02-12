@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -21,4 +21,77 @@ UserSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('User', UserSchema);
+const CustomerSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  name: String,
+  email: String,
+  phone: String,
+  company: String,
+  billingAddress: String,
+  nameLower: String,
+  emailLower: String,
+  status: String,
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const CarrierSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  name: String,
+  mcNumber: String,
+  mcNumberNormalized: String,
+  email: String,
+  phone: String,
+  paymentTerms: String,
+  insuranceExpiry: Date,
+  taxId: String,
+  nameLower: String,
+  status: String,
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const InvoiceSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  type: String,
+  customerId: String,
+  carrierId: String,
+  customerName: String,
+  carrierName: String,
+  carrier: String,
+  invoiceNumber: String,
+  amount: Number,
+  accessorials: Number,
+  fuelSurcharge: Number,
+  contractRate: Number,
+  status: String,
+  dueDate: Date,
+  issueDate: Date,
+  paymentTerms: String,
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const ExceptionSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  invoiceId: String,
+  invoiceNumber: String,
+  customerId: String,
+  customer: String,
+  carrierId: String,
+  carrier: String,
+  amount: Number,
+  type: String,
+  reason: String,
+  description: String,
+  severity: String,
+  status: String,
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+export const User = mongoose.model('User', UserSchema);
+export const Customer = mongoose.model('Customer', CustomerSchema);
+export const Carrier = mongoose.model('Carrier', CarrierSchema);
+export const Invoice = mongoose.model('Invoice', InvoiceSchema);
+export const Exception = mongoose.model('Exception', ExceptionSchema);
