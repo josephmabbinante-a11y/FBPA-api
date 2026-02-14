@@ -1,6 +1,42 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+const app = express();
+app.use(cors());
+app.use(express.json());
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Example: Serve login.html at root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Example API endpoint (replace with your actual API logic)
+app.get('/api/hello', (req, res) => {
+  res.json({ message: 'Hello from the API!' });
+});
+const PORT = process.env.PORT || 4000;
+
+// Connect to MongoDB and start server (optional - will work with mock data if DB unavailable)
+connectDB().then((connected) => {
+  app.listen(PORT, "0.0.0.0", () => {
+    if (connected) {
+      console.log(`✓ API running on http://0.0.0.0:${PORT} (Database mode)`);
+    } else {
+      console.log(`✓ API running on http://0.0.0.0:${PORT} (Mock data mode - no database)`);
+    }
+  });
+}).catch((error) => {
+  console.warn("Database connection error, starting server without DB:", error.message);
+  // Start server anyway with mock data
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`✓ API running on http://0.0.0.0:${PORT} (Mock data mode - database unavailable)`);
+  });
+});
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import connectDB from "./db/connection.js";
 
 dotenv.config();
