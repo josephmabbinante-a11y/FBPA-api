@@ -39,6 +39,10 @@ const carrierSchema = new mongoose.Schema(
       type: String,
       enum: ['Active', 'Inactive'],
       default: 'Active'
+    },
+    organization: {
+      type: String,
+      default: ""
     }
   },
   { timestamps: true }
