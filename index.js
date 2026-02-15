@@ -51,7 +51,7 @@ const PORT = process.env.PORT || 4000;
 
 // Connect to MongoDB and start server (optional - will work with mock data if DB unavailable)
 connectDB().then((connected) => {
-    app.listen(PORT, "localhost", () => {
+    app.listen(PORT, "0.0.0.0", () => {
       if (connected) {
       console.log(`✓ API running on http://localhost:${PORT} (Database mode)`);
       } else {
@@ -61,7 +61,7 @@ connectDB().then((connected) => {
 }).catch((error) => {
     console.warn("Database connection error, starting server without DB:", error.message);
   // Start server anyway with mock data
-    app.listen(PORT, "localhost", () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`API running on http://localhost:${PORT} (Mock mode - database unavailable)`);
     });
   });
