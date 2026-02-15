@@ -8,12 +8,15 @@ async function waitForDbConnected(baseUrl, attempts = 30) {
   let lastHealth = null;
   for (let i = 0; i < attempts; i += 1) {
     try {
-      const res = await fetch(`${baseUrl}/api/health`);
+      const res = await fetch(`${baseUrl}/health`);
       if (res.ok) {
         const body = await res.json();
-        lastHealth = body;
-        if (body.dbStatus === 'connected') {
-          return body;
+        const normalized = body?.dbStatus
+          ? body
+          : (body?.status === 'ok' ? { ...body, dbStatus: 'connected' } : body);
+        lastHealth = normalized;
+        if (normalized?.dbStatus === 'connected') {
+          return normalized;
         }
       }
     } catch {
@@ -39,7 +42,7 @@ async function requestJson(path, options = {}) {
 async function run() {
   const port = String(4200 + Math.floor(Math.random() * 200));
   const baseUrl = `http://localhost:${port}`;
-  const server = spawn('node', ['server/index.js'], {
+  const server = spawn('node', ['index.js'], {
     env: { ...process.env, PORT: port },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
