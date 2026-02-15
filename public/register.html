@@ -25,9 +25,7 @@
     <label>Name
       <input type="text" name="name">
     </label>
-    <label>Organization
-      <input type="text" name="organization">
-    </label>
+    <!-- Organization field is not used by backend registration endpoint -->
     <button type="submit">Register</button>
     <div class="message" id="message"></div>
   </form>
@@ -37,19 +35,23 @@
       const email = this.email.value;
       const password = this.password.value;
       const name = this.name.value;
-      const organization = this.organization.value;
       const res = await fetch('/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, organization })
+        body: JSON.stringify({ email, password, name })
       });
       const msg = document.getElementById('message');
       if (res.ok) {
         msg.textContent = 'Registration successful!';
         msg.style.color = 'green';
       } else {
-        const data = await res.json();
-        msg.textContent = data.error || 'Registration failed.';
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          data = {};
+        }
+        msg.textContent = (data.error || (data.errors && data.errors[0]?.msg) || 'Registration failed.');
         msg.style.color = 'red';
       }
     });
