@@ -5,9 +5,18 @@ import connectDB from "./db/connection.js";
 
 dotenv.config();
 
+
+// Initialize Express app
 const app = express();
+console.log('Express initialized');
+
+// Enable CORS for all routes
 app.use(cors());
+console.log('CORS middleware enabled');
+
+// Enable JSON body parsing
 app.use(express.json());
+console.log('express.json() middleware enabled');
 
 
 // Root route: show welcome or redirect to register
