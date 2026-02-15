@@ -51,29 +51,22 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/uploads", uploadsRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/auth", authRoutes);
 
-// Serve registration page
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-app.use(express.static(path.join(__dirname, "public")));
+const PORT = process.env.PORT || 4000;
 
-// Use the port from environment variable or default to 4000
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
-
-// Connect to MongoDB and start server (optional - will work with mock data if DB unavailable)
-connectDB().then((connected) => {
-    app.listen(PORT, "localhost", () => {
-      const actualPort = app.address ? app.address().port : PORT;
+connectDB()
+  .then((connected) => {
+    app.listen(PORT, "0.0.0.0", () => {
       if (connected) {
-        console.log(`✓ API running on http://localhost:${actualPort} (Database mode)`);
+        console.log(`API running on http://0.0.0.0:${PORT} (Database mode)`);
       } else {
-        console.log(`✓ API running on http://localhost:${actualPort} (Mock data mode - no database)`);
+        console.log(`API running on http://0.0.0.0:${PORT} (Mock mode - database unavailable)`);
       }
     });
 }).catch((error) => {
     console.warn("Database connection error, starting server without DB:", error.message);
-  // Start server anyway with mock data
-    app.listen(PORT, "localhost", () => {
-      const actualPort = app.address ? app.address().port : PORT;
-      console.log(`API running on http://localhost:${actualPort} (Mock mode - database unavailable)`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`API running on http://0.0.0.0:${PORT} (Mock mode - database unavailable)`);
     });
   });
