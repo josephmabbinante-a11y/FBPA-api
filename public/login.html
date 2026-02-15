@@ -22,9 +22,9 @@
         <input type="password" name="password" required autocomplete="current-password">
       </label>
       <button type="submit">Sign In</button>
+      <a href="/register.html" class="register-btn">Register</a>
       <div class="message" id="message"></div>
       <div style="margin-top:1em;">
-        <a href="/register.html" style="color:#1877F2;text-decoration:none;font-size:0.98em;">Sign up</a>
         &nbsp;|&nbsp;
         <a href="#" style="color:#1877F2;text-decoration:none;font-size:0.98em;opacity:0.6;cursor:not-allowed;">Forgot password?</a>
         <br><br>
@@ -57,5 +57,26 @@
       }
     });
   </script>
+  <style>
+    .register-btn {
+      display: block;
+      width: 100%;
+      margin-top: 1em;
+      padding: 0.9em;
+      background: #42b72a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .register-btn:hover {
+      background: #369f22;
+    }
+  </style>
 </body>
 </html>
