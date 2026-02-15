@@ -2,13 +2,13 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./db/connection.js";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "https://hdhtransport.com", credentials: true }));
 app.use(express.json());
-
 
 // Root route: show welcome or redirect to register
 app.get("/", (req, res) => {
@@ -42,6 +42,10 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/uploads", uploadsRoutes);
 app.use("/api/v1/auth", authRoutes);
+
+// Example: Hash a password and log it
+const hash = bcrypt.hashSync('pword123', 10);
+console.log('Example bcrypt hash for pword123:', hash);
 
 // Serve registration page
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
