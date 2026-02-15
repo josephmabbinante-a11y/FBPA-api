@@ -5,18 +5,9 @@ import connectDB from "./db/connection.js";
 
 dotenv.config();
 
-
-// Initialize Express app
 const app = express();
-console.log('Express initialized');
-
-// Enable CORS for all routes
 app.use(cors());
-console.log('CORS middleware enabled');
-
-// Enable JSON body parsing
 app.use(express.json());
-console.log('express.json() middleware enabled');
 
 
 // Root route: show welcome or redirect to register
@@ -51,22 +42,26 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/uploads", uploadsRoutes);
 app.use("/api/v1/auth", authRoutes);
-app.use("/auth", authRoutes);
+
+// Serve registration page
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 4000;
 
-connectDB()
-  .then((connected) => {
-    app.listen(PORT, "0.0.0.0", () => {
-      if (connected) {
-        console.log(`API running on http://0.0.0.0:${PORT} (Database mode)`);
-      } else {
-        console.log(`API running on http://0.0.0.0:${PORT} (Mock mode - database unavailable)`);
-      }
-    });
-}).catch((error) => {
-    console.warn("Database connection error, starting server without DB:", error.message);
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`API running on http://0.0.0.0:${PORT} (Mock mode - database unavailable)`);
-    });
+// Connect to MongoDB and start server (optional - will work with mock data if DB unavailable)
+connectDB().then((connected) => {
+  app.listen(PORT, "0.0.0.0", () => {
+    if (connected) {
+      console.log(`✓ API running on http://0.0.0.0:${PORT} (Database mode)`);
+    } else {
+      console.log(`✓ API running on http://0.0.0.0:${PORT} (Mock data mode - no database)`);
+    }
   });
+}).catch((error) => {
+  console.warn("Database connection error, starting server without DB:", error.message);
+  // Start server anyway with mock data
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`✓ API running on http://0.0.0.0:${PORT} (Mock data mode - database unavailable)`);
+  });
+});
