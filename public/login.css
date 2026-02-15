@@ -1,0 +1,76 @@
+/* login.css - extracted from login.html */
+body {
+  background: #18191A;
+  color: #fff;
+  font-family: 'Inter', Arial, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-container {
+  background: #23272F;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  padding: 2.5em 2em 2em 2em;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+.login-container h2 {
+  margin-bottom: 0.2em;
+  font-weight: 600;
+  font-size: 1.5em;
+}
+.login-container .subtitle {
+  color: #b0b3b8;
+  font-size: 1em;
+  margin-bottom: 1.5em;
+}
+.login-container label {
+  display: block;
+  text-align: left;
+  margin-top: 1em;
+  font-size: 0.98em;
+  color: #b0b3b8;
+}
+.login-container input {
+  width: 100%;
+  padding: 0.7em;
+  margin-top: 0.2em;
+  border-radius: 8px;
+  border: 1px solid #444950;
+  background: #18191A;
+  color: #fff;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+.login-container button {
+  width: 100%;
+  margin-top: 1.5em;
+  padding: 0.9em;
+  background: #1877F2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-container button:hover {
+  background: #145db2;
+}
+.login-container .message {
+  margin-top: 1em;
+  color: #ff4d4f;
+  font-weight: 500;
+}
+.login-container .logo {
+  margin-bottom: 1em;
+}
+.login-container .logo img {
+  width: 48px;
+  height: 48px;
+}
