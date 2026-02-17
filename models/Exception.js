@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
 
+import { v4 as uuidv4 } from "uuid";
+
 const exceptionSchema = new mongoose.Schema(
   {
+    id: {
+      type: String,
+      default: uuidv4,
+      unique: true
+    },
     code: {
       type: String,
       required: true
@@ -22,6 +29,15 @@ const exceptionSchema = new mongoose.Schema(
     timestamp: {
       type: Date,
       default: Date.now
+    },
+    invoiceId: {
+      type: String
+    },
+    customerId: {
+      type: String
+    },
+    carrierId: {
+      type: String
     }
   },
   { timestamps: true }

@@ -1,9 +1,18 @@
 // Example data for seeding the database
 // Place this in scripts/seedData.js or similar
 
+
+import { v4 as uuidv4 } from "uuid";
+
+const customerId1 = uuidv4();
+const customerId2 = uuidv4();
+const carrierId1 = uuidv4();
+const invoiceId1 = uuidv4();
+const exceptionId1 = uuidv4();
+
 export const customers = [
   {
-    id: 'CUST001',
+    id: customerId1,
     name: 'Acme Corp',
     email: 'contact@acme.com',
     phone: '555-1234',
@@ -16,7 +25,7 @@ export const customers = [
     status: 'Active',
   },
   {
-    id: 'CUST002',
+    id: customerId2,
     name: 'Beta LLC',
     email: 'info@beta.com',
     phone: '555-5678',
@@ -32,7 +41,7 @@ export const customers = [
 
 export const carriers = [
   {
-    id: 'CARR001',
+    id: carrierId1,
     name: 'Fast Freight',
     mcNumber: 'MC123456',
     dotNumber: 'DOT654321',
@@ -49,10 +58,10 @@ export const carriers = [
 
 export const invoices = [
   {
-    id: 'INV001',
+    id: invoiceId1,
     type: 'AR',
-    customerId: 'CUST001',
-    carrierId: 'CARR001',
+    customerId: customerId1,
+    carrierId: carrierId1,
     customerName: 'Acme Corp',
     carrierName: 'Fast Freight',
     carrier: 'Fast Freight',
@@ -70,12 +79,12 @@ export const invoices = [
 
 export const exceptions = [
   {
-    id: 'EXC001',
-    invoiceId: 'INV001',
+    id: exceptionId1,
+    invoiceId: invoiceId1,
     invoiceNumber: '1001',
-    customerId: 'CUST001',
+    customerId: customerId1,
     customer: 'Acme Corp',
-    carrierId: 'CARR001',
+    carrierId: carrierId1,
     carrier: 'Fast Freight',
     amount: 50.00,
     type: 'financial',
