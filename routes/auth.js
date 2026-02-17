@@ -74,7 +74,7 @@ router.post("/register", loginValidators, validate, async (req, res) => {
     await user.save();
 
     res.status(201).json({
-      id: user.id,
+      id: user._id,
       email: user.email,
       name: user.name,
       roles: user.roles
@@ -106,7 +106,7 @@ async function loginUser({ email, password }) {
     return { status: 401, data: { error: "Invalid credentials" } };
   }
 
-  const accessToken = signAccessToken({ sub: user.id, email: user.email, roles: user.roles });
+  const accessToken = signAccessToken({ sub: user._id, email: user.email, roles: user.roles });
   if (!accessToken) {
     return { status: 500, data: { error: "JWT_SECRET is not configured" } };
   }
@@ -117,7 +117,7 @@ async function loginUser({ email, password }) {
       accessToken,
       token: accessToken,
       user: {
-        id: user.id,
+        id: user._id,
         email: user.email,
         name: user.name,
         roles: user.roles
