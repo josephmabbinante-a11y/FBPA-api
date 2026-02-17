@@ -75,7 +75,7 @@ app.use(cors({
 app.use(express.json());
 
 // Auth routes
-app.use('/auth', authRouter);
+app.use('/api/v1/auth', authRouter);
 
 // API routes
 app.use('/api/customers', customersRouter);
