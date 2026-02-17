@@ -32,6 +32,10 @@ export const Exception = ExceptionModel;
 import AuditModel from './Audit.js';
 export const Audit = AuditModel;
 
+// Customer model
+import CustomerModel from './Customer.js';
+export const Customer = CustomerModel;
+
 // Carrier model (if exists)
 let CarrierModel;
 try {
