@@ -50,6 +50,7 @@ function tryDevFallbackLogin(email, password) {
   };
 }
 
+
 // Register endpoint
 router.post("/register", loginValidators, validate, async (req, res) => {
   try {
@@ -83,42 +84,36 @@ router.post("/register", loginValidators, validate, async (req, res) => {
   }
 });
 
-router.post("/login", loginValidators, validate, async (req, res) => {
-  try {
-    const { email, password } = req.body;
+// Reusable login function
+async function loginUser({ email, password }) {
+  if (mongoose.connection.readyState !== 1) {
+    const fallback = tryDevFallbackLogin(email, password);
+    if (fallback) return { status: 200, data: fallback };
+    return { status: 503, data: { error: "Database unavailable" } };
+  }
 
-    if (mongoose.connection.readyState !== 1) {
-      const fallback = tryDevFallbackLogin(email, password);
-      if (fallback) {
-        return res.json(fallback);
-      }
-      return res.status(503).json({ error: "Database unavailable" });
-    }
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    const fallback = tryDevFallbackLogin(email, password);
+    if (fallback) return { status: 200, data: fallback };
+    return { status: 401, data: { error: "Invalid credentials" } };
+  }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      const fallback = tryDevFallbackLogin(email, password);
-      if (fallback) {
-        return res.json(fallback);
-      }
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+  if (!passwordMatches) {
+    const fallback = tryDevFallbackLogin(email, password);
+    if (fallback) return { status: 200, data: fallback };
+    return { status: 401, data: { error: "Invalid credentials" } };
+  }
 
-    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordMatches) {
-      const fallback = tryDevFallbackLogin(email, password);
-      if (fallback) {
-        return res.json(fallback);
-      }
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+  const accessToken = signAccessToken({ sub: user.id, email: user.email, roles: user.roles });
+  if (!accessToken) {
+    return { status: 500, data: { error: "JWT_SECRET is not configured" } };
+  }
 
-    const accessToken = signAccessToken({ sub: user.id, email: user.email, roles: user.roles });
-    if (!accessToken) {
-      return res.status(500).json({ error: "JWT_SECRET is not configured" });
-    }
-
-    res.json({
+  return {
+    status: 200,
+    data: {
       accessToken,
       token: accessToken,
       user: {
@@ -127,7 +122,16 @@ router.post("/login", loginValidators, validate, async (req, res) => {
         name: user.name,
         roles: user.roles
       }
-    });
+    }
+  };
+}
+
+
+router.post("/login", loginValidators, validate, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await loginUser({ email, password });
+    return res.status(result.status).json(result.data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
