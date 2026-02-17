@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register User</title>
+  <link rel="stylesheet" href="/login.css">
+  <style>
+    .register-container {
+      background: #23272F;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+      padding: 2.5em 2em 2em 2em;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      margin: 5em auto;
+    }
+    .register-container h2 {
+      margin-bottom: 0.2em;
+      font-weight: 600;
+      font-size: 1.5em;
+    }
+    .register-container label {
+      display: block;
+      text-align: left;
+      margin-top: 1em;
+      font-size: 0.98em;
+      color: #b0b3b8;
+    }
+    .register-container input {
+      width: 100%;
+      padding: 0.7em;
+      margin-top: 0.2em;
+      border-radius: 8px;
+      border: 1px solid #444950;
+      background: #18191A;
+      color: #fff;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    .register-container button {
+      width: 100%;
+      margin-top: 1.5em;
+      padding: 0.9em;
+      background: #42b72a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .register-container button:hover {
+      background: #369f22;
+    }
+    .register-container .message {
+      margin-top: 1em;
+      color: #ff4d4f;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Register User</h2>
+    <form id="registerForm">
+      <label>Email
+        <input type="email" name="email" required>
+      </label>
+      <label>Password
+        <input type="password" name="password" required>
+      </label>
+      <label>Name
+        <input type="text" name="name">
+      </label>
+      <button type="submit">Register</button>
+      <div class="message" id="message"></div>
+    </form>
+    <div style="margin-top:1.5em;font-size:0.95em;color:#b0b3b8;">
+      <a href="/login.html" style="color:#1877F2;text-decoration:none;">Back to Login</a>
+    </div>
+  </div>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = this.email.value;
+      const password = this.password.value;
+      const name = this.name.value;
+      const res = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name })
+      });
+      const msg = document.getElementById('message');
+      if (res.ok) {
+        msg.textContent = 'Registration successful!';
+        msg.style.color = 'green';
+      } else {
+        const data = await res.json();
+        msg.textContent = data.error || 'Registration failed.';
+        msg.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
