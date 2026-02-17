@@ -1,6 +1,22 @@
+
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from './models.js';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+
+// User schema and model (moved from User.js)
+const UserSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  passwordHash: { type: String, required: true },
+  name: { type: String, default: "" },
+  roles: { type: [String], default: ["user"] }
+}, { timestamps: true });
+
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.passwordHash);
+};
+
+const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
