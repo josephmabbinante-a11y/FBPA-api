@@ -6,13 +6,15 @@ import bcrypt from 'bcryptjs';
 
 // User schema and model (moved from User.js)
 const UserSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, index: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   passwordHash: { type: String, required: true },
   name: { type: String, default: "" },
-  roles: { type: [String], default: ["user"] }
+  role: { type: String, default: "user" }
 }, { timestamps: true });
 
 UserSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.passwordHash) return false;
   return await bcrypt.compare(candidatePassword, this.passwordHash);
 };
 
@@ -41,7 +43,7 @@ router.post('/signup', async (req, res) => {
     const newUser = new User({
       id: userId,
       email: email.toLowerCase(),
-      password, // Will be hashed by pre-save hook
+      passwordHash: await bcrypt.hash(password, 10),
       name: name || email.split('@')[0],
       role: role || 'user',
     });
