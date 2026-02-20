@@ -1,0 +1,20 @@
+# MongoDB connection string 
+MONGODB_URI=mongodb+srv://josephmabbinante_db_user:tEkZDundjpXeSa2G@cluster0.fvycshx.mongodb.net/?appName=Cluster0
+
+# JWT secret 
+JWT_SECRET=mvV]GF;-x-nWYJiQ_5dmU1Qix}uNRD!vn)o6
+
+# JWT token expiration 
+JWT_EXPIRES_IN=1h
+
+# Node environment 
+NODE_ENV=production
+
+# CORS allowed origins 
+CORS_ORIGIN=https://your-frontend-url.com,https://another-frontend.com
+
+# Serve static files 
+
+# (Optional) S3 and other secrets if needed
+S3_BUCKET=your-s3-bucket
+SECRET_KEY=your-secret-key
