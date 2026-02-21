@@ -5,6 +5,11 @@ import { User } from './models.js';
 
 const router = express.Router();
 
+// GET /api/auth/signup - Friendly message for browser access
+router.get('/signup', (req, res) => {
+  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to sign up' });
+});
+
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
@@ -46,6 +51,11 @@ router.post('/signup', async (req, res) => {
     console.error('[auth/signup] Error:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+// GET /api/auth/login - Friendly message for browser access
+router.get('/login', (req, res) => {
+  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to log in' });
 });
 
 // POST /api/auth/login
