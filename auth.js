@@ -1,61 +1,12 @@
 import express from 'express';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from './models.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 
-// Signup endpoint
+// POST /api/auth/signup
 router.post('/signup', async (req, res) => {
-  try {
-    const { email, password, name, role } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
-    }
-
-    // Create new user
-    const userId = `u-${Date.now()}`;
-    const newUser = new User({
-      id: userId,
-      email: email.toLowerCase(),
-      password, // Will be hashed by pre-save hook
-      name: name || email.split('@')[0],
-      role: role || 'user',
-    });
-
-    await newUser.save();
-
-    // Generate JWT token
-    const accessToken = jwt.sign(
-      { sub: newUser.id, email: newUser.email, role: newUser.role },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    return res.status(201).json({
-      accessToken,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-      },
-    });
-  } catch (error) {
-    console.error('[auth/signup] Error:', error);
-    return res.status(500).json({ error: 'Server error during signup' });
-  }
-});
-
-// Login endpoint
-router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -63,37 +14,63 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ error: 'User already exists' });
     }
 
-    // Verify password
-    const isValidPassword = await user.comparePassword(password);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
 
-    // Generate JWT token
-    const accessToken = jwt.sign(
-      { sub: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '1h' }
+    // Create user with passwordHash
+    const newUser = new User({
+      email,
+      passwordHash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await newUser.save();
+
+    // Create token
+    const token = jwt.sign(
+      { userId: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
     );
 
-    return res.json({
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error('[auth/login] Error:', error);
-    return res.status(500).json({ error: 'Server error during login' });
+    res.status(201).json({ token, user: { id: newUser.id, email: newUser.email } });
+  } catch (err) {
+    console.error('[auth/signup] Error:',jh err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+    );
+
+    res.json({ token, user: { id: user.id, email: user.email } });
+  } catch (err) {
+    console.error('[auth/login] Error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
