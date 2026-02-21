@@ -115,7 +115,7 @@
       const email = this.email.value;
       const password = this.password.value;
       // Use relative path - works on any domain
-      const res = await fetch('/api/v1/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
