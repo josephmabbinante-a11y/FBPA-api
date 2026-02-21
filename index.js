@@ -72,6 +72,7 @@ app.use(cors({
 app.use(express.json());
 
 // API routes
+app.use('/auth', authRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/carriers', carriersRouter);
