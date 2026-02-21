@@ -43,7 +43,7 @@ router.post('/signup', async (req, res) => {
 
     res.status(201).json({ token, user: { id: newUser.id, email: newUser.email } });
   } catch (err) {
-    console.error('[auth/signup] Error:',jh err);
+    console.error('[auth/signup] Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
