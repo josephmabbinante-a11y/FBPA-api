@@ -71,88 +71,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Auth routes defined directly in index.js
-import jwt from 'jsonwebtoken';
-import { User } from './models.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
-
-// Signup endpoint
-app.post('/auth/signup', async (req, res) => {
-  try {
-    const { email, password, name, role } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
-    }
-    const userId = `u-${Date.now()}`;
-    const newUser = new User({
-      id: userId,
-      email: email.toLowerCase(),
-      password,
-      name: name || email.split('@')[0],
-      role: role || 'user',
-    });
-    await newUser.save();
-    const accessToken = jwt.sign(
-      { sub: newUser.id, email: newUser.email, role: newUser.role },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    return res.status(201).json({
-      accessToken,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-      },
-    });
-  } catch (error) {
-    console.error('[auth/signup] Error:', error);
-    return res.status(500).json({ error: 'Server error during signup' });
-  }
-});
-
-// Login endpoint
-app.post('/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    const isValidPassword = await user.comparePassword(password);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    const accessToken = jwt.sign(
-      { sub: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    return res.json({
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error('[auth/login] Error:', error);
-    return res.status(500).json({ error: 'Server error during login' });
-  }
-});
-
 // API routes
+app.use('/api/auth', authRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/carriers', carriersRouter);
 app.use('/api/invoices', invoicesRouter);
