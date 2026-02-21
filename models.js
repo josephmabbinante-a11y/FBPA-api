@@ -1,8 +1,8 @@
-import User from './models/User.js';
-import Invoice from './models/Invoice.js';
-import Audit from './models/Audit.js';
-import Exception from './models/Exception.js';
-import Customer from './models/Customer.js';
-import Carrier from './models/Carrier.js';
+import User from './User.js';
+import Invoice from './Invoice.js';
+import Audit from './Audit.js';
+import Exception from './Exception.js';
+import Customer from './Customer.js';
+import Carrier from './Carrier.js';
 
 export { User, Invoice, Audit, Exception, Customer, Carrier };
