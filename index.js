@@ -1,3 +1,4 @@
+const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -19,9 +20,13 @@ import authRouter from './auth.js';
 
 // Load environment variables from .env
 dotenv.config();
+// ...existing code...
+const NODE_ENV = process.env.NODE_ENV || 'development';
+// ...existing code...
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
+const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
 const app = express();
-const PORT = process.env.PORT || 4000;
-const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
+// ...existing code...
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, '../dist');
