@@ -58,25 +58,11 @@ router.post("/login", loginValidators, validate, async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return res.status(500).json({ error: "JWT_SECRET is not configured" });
-    }
-
-    const token = jwt.sign(
-      { sub: user.id, email: user.email, roles: user.roles },
-      jwtSecret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
-    );
-
     res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        roles: user.roles
-      }
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roles: user.roles
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
