@@ -35,6 +35,7 @@ const distPath = path.resolve(__dirname, '../dist');
 const defaultAllowedOrigins = [
   'https://express-git-fbpa-josephmabbinante-a11ys-projects.vercel.app',
   'https://www.hdhtransport.com',
+  'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
   // Add any custom production domains here
 ];
 // ...existing code...
