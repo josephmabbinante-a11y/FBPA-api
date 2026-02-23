@@ -89,6 +89,19 @@ app.use(cors({
   credentials: true,
 }));
 
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  const origin = req.headers.origin || '-';
+  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString();
+
+  res.on('finish', () => {
+    const durationMs = Date.now() - startedAt;
+    console.log(`[http] ${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs}ms origin=${origin} ip=${ip}`);
+  });
+
+  next();
+});
+
 
 // Add JSON parse error handler for body-parser
 app.use(express.json());
