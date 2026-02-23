@@ -49,17 +49,18 @@ router.post("/login", loginValidators, validate, async (req, res) => {
     const { email, password } = req.body;
     console.log(`[LOGIN DEBUG] Attempting login for email: '${email}'`);
 
+
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       console.log(`[LOGIN DEBUG] No user found for email: '${email.toLowerCase()}'`);
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "No account found for this email address." });
     }
     console.log(`[LOGIN DEBUG] User found:`, user.email, user.id);
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
     console.log(`[LOGIN DEBUG] Password match:`, passwordMatches);
     if (!passwordMatches) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Incorrect password. Please try again or reset your password." });
     }
 
     const token = jwt.sign(
