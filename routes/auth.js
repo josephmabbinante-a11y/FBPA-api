@@ -50,12 +50,14 @@ router.post("/login", loginValidators, validate, async (req, res) => {
     console.log(`[LOGIN DEBUG] Attempting login for email: '${email}'`);
 
 
+    console.log(`[LOGIN DEBUG] Querying for user:`, { email: email.toLowerCase() });
     const user = await User.findOne({ email: email.toLowerCase() });
+    console.log(`[LOGIN DEBUG] Query result:`, user);
     if (!user) {
       console.log(`[LOGIN DEBUG] No user found for email: '${email.toLowerCase()}'`);
       return res.status(401).json({ error: "No account found for this email address." });
     }
-    console.log(`[LOGIN DEBUG] User found:`, user.email, user.id);
+    console.log(`[LOGIN DEBUG] User found:`, user.email, user.id, user);
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
     console.log(`[LOGIN DEBUG] Password match:`, passwordMatches);
