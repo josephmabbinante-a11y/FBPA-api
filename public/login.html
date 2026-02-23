@@ -84,7 +84,17 @@
   </style>
 </head>
 <body>
-  <div class="login-container">
+  <div style="display: flex; align-items: center; justify-content: center;">
+    <div class="ghost-art" style="margin-right: 32px;">
+      <svg width="96" height="96" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <ellipse cx="32" cy="40" rx="20" ry="18" fill="#fff" stroke="#bbb" stroke-width="2"/>
+        <ellipse cx="32" cy="28" rx="16" ry="18" fill="#fff" stroke="#bbb" stroke-width="2"/>
+        <ellipse cx="24" cy="30" rx="2.5" ry="4" fill="#222"/>
+        <ellipse cx="40" cy="30" rx="2.5" ry="4" fill="#222"/>
+        <path d="M24 44 Q32 50 40 44" stroke="#bbb" stroke-width="2" fill="none"/>
+      </svg>
+    </div>
+    <div class="login-container">
     <div class="logo">
       <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/microsoftazure.svg" alt="Opscale Logo" />
     </div>
@@ -108,6 +118,7 @@
       </div>
     </form>
     <div style="margin-top:1.5em;font-size:0.95em;color:#b0b3b8;">By signing in you agree to the Opscale terms and privacy policy.</div>
+    </div>
   </div>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
