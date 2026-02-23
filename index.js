@@ -1,5 +1,7 @@
+const PORT = process.env.PORT || 4000;
 import dotenv from 'dotenv';
 dotenv.config();
+const PORT = process.env.PORT || 4000;
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
