@@ -33,7 +33,9 @@ const distPath = path.resolve(__dirname, '../dist');
 
 // Allow only Vercel frontend and custom domains for CORS
 const defaultAllowedOrigins = [
+  'http://localhost:3000',
   'https://express-git-fbpa-josephmabbinante-a11ys-projects.vercel.app',
+  'https://www.hdhtransport.com',
   'https://hdhtransport.com',
   'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
   // Add any custom production domains here
@@ -66,13 +68,7 @@ if (MONGODB_URI && !hasUriPlaceholders) {
 }
 
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error(`CORS origin not allowed: ${origin}`));
-  },
+  origin: '*',
   credentials: true,
 }));
 
