@@ -44,10 +44,13 @@ const defaultAllowedOrigins = [
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, '').toLowerCase())
   .filter(Boolean);
 
-const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
+const allowedOrigins = new Set(
+  [...defaultAllowedOrigins, ...envAllowedOrigins]
+    .map((origin) => origin.trim().replace(/\/+$/, '').toLowerCase())
+);
 
 const hasUriPlaceholders = /<[^>]+>/.test(MONGODB_URI);
 
@@ -68,7 +71,20 @@ if (MONGODB_URI && !hasUriPlaceholders) {
 }
 
 app.use(cors({
-  origin: '*',
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    const normalizedOrigin = origin.trim().replace(/\/+$/, '').toLowerCase();
+    if (allowedOrigins.has(normalizedOrigin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS origin not allowed: ${origin}`));
+  },
   credentials: true,
 }));
 
