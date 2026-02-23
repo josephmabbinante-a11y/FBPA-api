@@ -105,10 +105,16 @@ app.use((req, res, next) => {
 
 // Add JSON parse error handler for body-parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    console.error('Bad JSON:', err.message);
-    return res.status(400).json({ ok: false, error: 'Invalid JSON in request body.' });
+    const contentType = req.headers['content-type'] || '';
+    console.error(`[bad-json] ${err.message} content-type=${contentType}`);
+    return res.status(400).json({
+      ok: false,
+      error: 'Invalid JSON in request body.',
+      hint: 'Send valid JSON like {"email":"name@example.com","password":"..."} with Content-Type: application/json',
+    });
   }
   next(err);
 });
