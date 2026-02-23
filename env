@@ -1,12 +1,6 @@
 # MongoDB connection string 
 MONGODB_URI=mongodb+srv://josephmabbinante_db_user:tEkZDundjpXeSa2G@cluster0.fvycshx.mongodb.net/?appName=Cluster0
 
-# JWT secret 
-JWT_SECRET=mvV]GF;-x-nWYJiQ_5dmU1Qix}uNRD!vn)o6
-
-# JWT token expiration 
-JWT_EXPIRES_IN=1h
-
 # Node environment 
 NODE_ENV=production
 

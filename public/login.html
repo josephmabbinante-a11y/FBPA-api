@@ -122,10 +122,9 @@
       });
       const msg = document.getElementById('message');
       if (res.ok) {
-        const data = await res.json();
+        await res.json();
         msg.textContent = 'Login successful!';
         msg.style.color = 'green';
-        // Optionally, store token: localStorage.setItem('token', data.token);
       } else {
         const data = await res.json();
         msg.textContent = data.error || 'Invalid email or password';

@@ -25,23 +25,6 @@ mongodb+srv://myuser:mypassword@cluster0.abc123.mongodb.net/fbpa?retryWrites=tru
 - ✅ Store in environment variables only
 - 🔒 Rotate credentials if accidentally exposed
 
-#### `JWT_SECRET`
-Secret key for signing JWT tokens (minimum 32 characters recommended).
-
-**Generate a secure secret:**
-```bash
-# Using Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-# Or use a password generator
-openssl rand -hex 32
-```
-
-**Example:**
-```
-JWT_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
-```
-
 ### Optional Variables
 
 #### `PORT`
@@ -56,16 +39,6 @@ Comma-separated list of allowed frontend origins.
 **Example:**
 ```
 CORS_ORIGIN=https://fbpa-ui.onrender.com,https://www.yourdomain.com
-```
-
-#### `JWT_EXPIRES_IN`
-JWT token expiration time (default: 1h)
-
-**Examples:**
-```
-JWT_EXPIRES_IN=1h    # 1 hour
-JWT_EXPIRES_IN=7d    # 7 days
-JWT_EXPIRES_IN=30m   # 30 minutes
 ```
 
 #### `SERVE_STATIC`
@@ -115,7 +88,6 @@ SMTP_FROM=noreply@audit-iq.com
    - Add each variable:
      ```
      MONGODB_URI = <your-mongodb-connection-string>
-     JWT_SECRET = <your-generated-secret>
      NODE_ENV = production
      CORS_ORIGIN = <your-frontend-url>
      ```
@@ -150,7 +122,6 @@ SMTP_FROM=noreply@audit-iq.com
    - Add:
      ```
      MONGODB_URI = <your-mongodb-connection-string>
-     JWT_SECRET = <your-generated-secret>
      NODE_ENV = production
      CORS_ORIGIN = <your-frontend-url>
      ```
@@ -182,9 +153,6 @@ If using Vercel:
    ```bash
    vercel env add MONGODB_URI
    # Paste your connection string when prompted
-
-   vercel env add JWT_SECRET
-   # Paste your JWT secret
    ```
 
 4. **Deploy:**
@@ -294,7 +262,6 @@ curl -X POST https://your-api-url.railway.app/auth/login \
 
 - [ ] `.env` file is in `.gitignore`
 - [ ] Never commit `.env` or credentials to git
-- [ ] Use strong, randomly generated `JWT_SECRET`
 - [ ] Rotate credentials if accidentally exposed
 - [ ] Use environment variables in deployment platforms
 - [ ] Enable MongoDB Atlas IP whitelist
