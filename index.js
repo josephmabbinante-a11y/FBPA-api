@@ -34,7 +34,7 @@ const distPath = path.resolve(__dirname, '../dist');
 // Allow only Vercel frontend and custom domains for CORS
 const defaultAllowedOrigins = [
   'https://express-git-fbpa-josephmabbinante-a11ys-projects.vercel.app',
-  'https://www.hdhtransport.com',
+  'https://hdhtransport.com',
   'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
   // Add any custom production domains here
 ];
