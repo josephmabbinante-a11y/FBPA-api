@@ -34,8 +34,7 @@
       const email = this.email.value;
       const password = this.password.value;
       const name = this.name.value;
-      // Use the correct endpoint for registration
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name })

@@ -1,4 +1,5 @@
 import express from "express";
+import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
@@ -57,12 +58,13 @@ router.post("/login", loginValidators, validate, async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    res.json({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      roles: user.roles
-    });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+    );
+
+    res.json({ token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

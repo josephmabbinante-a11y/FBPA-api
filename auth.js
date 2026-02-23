@@ -4,13 +4,7 @@ import { User } from './models.js';
 
 const router = express.Router();
 
-// GET /api/auth/signup - Friendly message for browser access
-router.get('/signup', (req, res) => {
-  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to sign up' });
-});
-
-// POST /api/auth/signup
-router.post('/signup', async (req, res) => {
+async function registerHandler(req, res) {
   try {
     const { email, password } = req.body;
 
@@ -43,7 +37,21 @@ router.post('/signup', async (req, res) => {
     console.error('[auth/signup] Error:', err);
     res.status(500).json({ error: err.message });
   }
+}
+
+// GET /auth/register - Friendly message for browser access
+router.get('/register', (req, res) => {
+  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to register' });
 });
+
+// POST /auth/register
+router.post('/register', registerHandler);
+
+// Backward-compatible alias
+router.get('/signup', (req, res) => {
+  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to register' });
+});
+router.post('/signup', registerHandler);
 
 // GET /api/auth/login - Friendly message for browser access
 router.get('/login', (req, res) => {
