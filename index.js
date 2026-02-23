@@ -38,6 +38,7 @@ const defaultAllowedOrigins = [
   'https://www.hdhtransport.com',
   'https://hdhtransport.com',
   'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
+  'https://fbpa-qh4fmw9tg-josephmabbinante-a11ys-projects.vercel.app',
   // Add any custom production domains here
 ];
 // ...existing code...
@@ -139,6 +140,14 @@ if (process.env.SERVE_STATIC === 'true') {
 // Root route for friendly message
 app.get('/', (req, res) => {
   res.send('API server is running!');
+});
+
+app.use((err, req, res, next) => {
+  if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
+    return res.status(403).json({ error: err.message });
+  }
+
+  return next(err);
 });
 
 app.listen(PORT, () => {
