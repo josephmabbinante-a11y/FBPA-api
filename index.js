@@ -1,4 +1,4 @@
-const PORT = process.env.PORT || 4000;
+// ...existing code...
 import dotenv from 'dotenv';
 dotenv.config();
 const PORT = process.env.PORT || 4000;
