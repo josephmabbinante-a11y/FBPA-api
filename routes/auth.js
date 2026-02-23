@@ -47,13 +47,17 @@ router.post("/login", loginValidators, validate, async (req, res) => {
     }
 
     const { email, password } = req.body;
+    console.log(`[LOGIN DEBUG] Attempting login for email: '${email}'`);
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
+      console.log(`[LOGIN DEBUG] No user found for email: '${email.toLowerCase()}'`);
       return res.status(401).json({ error: "Invalid credentials" });
     }
+    console.log(`[LOGIN DEBUG] User found:`, user.email, user.id);
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    console.log(`[LOGIN DEBUG] Password match:`, passwordMatches);
     if (!passwordMatches) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -66,6 +70,7 @@ router.post("/login", loginValidators, validate, async (req, res) => {
 
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
+    console.error('[LOGIN DEBUG] Error during login:', error);
     res.status(500).json({ error: error.message });
   }
 });
