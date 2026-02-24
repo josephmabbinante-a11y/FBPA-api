@@ -39,6 +39,11 @@ const defaultAllowedOrigins = [
   'https://hdhtransport.com',
   'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
   'https://fbpa-qh4fmw9tg-josephmabbinante-a11ys-projects.vercel.app',
+  'https://vercel.com/josephmabbinante-a11ys-projects/fbpa-ui'
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  ''
   // Add any custom production domains here
 ];
 // ...existing code...
