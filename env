@@ -1,5 +1,5 @@
 # MongoDB connection string 
-MONGODB_URI=mongodb+srv://josephmabbinante_db_user:tEkZDundjpXeSa2G@cluster0.fvycshx.mongodb.net/fbpa?appName=Cluster0
+MONGODB_URI=mongodb+srv://josephmabbinante_db_user:tEkZDundjpXeSa2G@cluster0.fvycshx.mongodb.net/fbpa-db?=Cluster0
 
 # Node environment 
 NODE_ENV=production
