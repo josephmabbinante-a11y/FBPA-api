@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || "mongodb://localhost:27017/fbpa-api";
+    const mongoURI = process.env.MONGODB_URI || "mongodb://localhost:27017/fbpa-db";
 
     await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 5000 });
 
