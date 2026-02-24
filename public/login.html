@@ -49,7 +49,6 @@
       e.preventDefault();
       const email = this.email.value;
       const password = this.password.value;
-      // Use relative path - works on any domain
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,9 +56,15 @@
       });
       const msg = document.getElementById('message');
       if (res.ok) {
-        await res.json();
-        msg.textContent = 'Login successful!';
+        const data = await res.json();
+        msg.textContent = 'Login successful! Redirecting...';
         msg.style.color = 'green';
+        if (data.token) {
+          localStorage.setItem('jwt', data.token);
+        }
+        setTimeout(function() {
+          window.location.href = '/dashboard.html';
+        }, 1200);
       } else {
         const data = await res.json();
         msg.textContent = data.error || 'Invalid email or password';
