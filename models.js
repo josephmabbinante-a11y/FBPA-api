@@ -1,22 +1,18 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-// User model
+// User model (unified with auth.js)
 const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  name: { type: String },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  passwordHash: { type: String, required: true },
+  name: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
-});
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+}, { timestamps: true });
 UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  if (!this.passwordHash) return false;
+  return await bcrypt.compare(candidatePassword, this.passwordHash);
 };
 export const User = mongoose.model('User', UserSchema);
 
