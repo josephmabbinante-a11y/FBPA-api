@@ -34,6 +34,7 @@ const defaultAllowedOrigins = [
   'http://localhost:5177',
   'http://localhost:5178',
   'http://localhost:5179',
+  'https://hdhtransport.com',
 ];
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
