@@ -25,6 +25,56 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 
 // Signup endpoint
 router.post('/signup', async (req, res) => {
+  // ...existing code...
+});
+
+// Duplicate /signup logic for /register compatibility
+router.post('/register', async (req, res) => {
+  try {
+    const { email, password, name, role } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(409).json({ error: 'User already exists' });
+    }
+
+    // Create new user
+    const userId = `u-${Date.now()}`;
+    const newUser = new User({
+      id: userId,
+      email: email.toLowerCase(),
+      passwordHash: await bcrypt.hash(password, 10),
+      name: name || email.split('@')[0],
+      role: role || 'user',
+    });
+    await newUser.save();
+
+    // Generate JWT token
+    const accessToken = jwt.sign(
+      { sub: newUser.id, email: newUser.email, role: newUser.role },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    return res.status(201).json({
+      accessToken,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+      },
+    });
+  } catch (error) {
+    console.error('[auth/register] Error:', error);
+    return res.status(500).json({ error: 'Server error during registration' });
+  }
+});
   try {
     const { email, password, name, role } = req.body;
 
