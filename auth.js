@@ -21,7 +21,7 @@ UserSchema.methods.comparePassword = async function (candidatePassword) {
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
+const JWT_SECRET = process.env.JWT_SECRET || 'fbpa_4f8e2b7c9d1a_secure_random_2026';
 
 // Signup endpoint
 router.post('/signup', async (req, res) => {
