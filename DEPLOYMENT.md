@@ -17,7 +17,7 @@ Your MongoDB Atlas connection string.
 
 **Example:**
 ```
-mongodb+srv://myuser:mypassword@cluster0.abc123.mongodb.net/fbpa?retryWrites=true&w=majority
+mongodb+srv://myuser:mypassword@cluster0.abc123.mongodb.net/fbpa-db?retryWrites=true&w=majority
 ```
 
 **Security Notes:**
