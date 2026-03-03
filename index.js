@@ -16,6 +16,7 @@ import uploadsRouter from './uploads.js';
 import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
 import authRouter from './auth.js';
+import loadboardRouter from './loadboard.js';
 
 dotenv.config();
 
@@ -90,6 +91,7 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/invoice-images', invoiceImagesRouter);
 app.use('/api/edi', ediRouter);
+app.use('/api/loadboard', loadboardRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
