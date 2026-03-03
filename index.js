@@ -138,6 +138,16 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/invoice-images', invoiceImagesRouter);
 app.use('/api/edi', ediRouter);
+import locationsRouter from './locations.js';
+import tripsRouter from './trips.js';
+import driversRouter from './drivers.js';
+import vehiclesRouter from './vehicles.js';
+import loadsRouter from './loads.js';
+app.use('/api/locations', locationsRouter);
+app.use('/api/trips', tripsRouter);
+app.use('/api/drivers', driversRouter);
+app.use('/api/vehicles', vehiclesRouter);
+app.use('/api/loads', loadsRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
