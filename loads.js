@@ -1,6 +1,17 @@
 import express from 'express';
 import Load from './Load.js';
 const router = express.Router();
+// POST /estimate-mileage endpoint
+router.post('/estimate-mileage', async (req, res) => {
+  const { origin, destination } = req.body;
+  // Dummy mileage calculation, replace with real logic as needed
+  if (!origin || !destination) {
+    return res.status(400).json({ error: 'Origin and destination required.' });
+  }
+  // Example: always return 100 miles
+  res.json({ origin, destination, estimatedMileage: 100 });
+});
+// ...existing code...
 
 // GET all loads
 // GET all loads with filtering, sorting, and pagination
