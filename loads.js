@@ -3,10 +3,44 @@ import Load from './Load.js';
 const router = express.Router();
 
 // GET all loads
+// GET all loads with filtering, sorting, and pagination
 router.get('/', async (req, res) => {
   try {
-    const loads = await Load.find().sort({ updatedAt: -1 });
-    res.json({ loads });
+    // Filtering
+    const tab = req.query.tab || 'all';
+    let filter = {};
+    if (tab !== 'all') {
+      filter.status = tab;
+    }
+
+    // Sorting
+    let sort = {};
+    if (req.query.sort) {
+      // e.g., sort=-updatedAt or sort=updatedAt
+      const sortField = req.query.sort.replace('-', '');
+      sort[sortField] = req.query.sort.startsWith('-') ? -1 : 1;
+    } else {
+      sort = { updatedAt: -1 };
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 25;
+    const skip = (page - 1) * pageSize;
+
+    const total = await Load.countDocuments(filter);
+    const loads = await Load.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(pageSize);
+
+    res.json({
+      loads,
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
