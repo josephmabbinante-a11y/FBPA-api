@@ -20,7 +20,14 @@ export default function CombinedPage() {
           <button
             key={tab.label}
             className={activeTab === idx ? 'active' : ''}
-            style={{ padding: '8px 16px', borderRadius: 6, border: '1px solid #ccc', background: activeTab === idx ? '#e0eaff' : '#fff', fontWeight: 600, cursor: 'pointer' }}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 6,
+              border: '1px solid var(--border, #ccc)',
+              background: activeTab === idx ? 'var(--accent, #e0eaff)' : 'var(--panel, #fff)',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
             onClick={() => setActiveTab(idx)}
           >
             {tab.label}
