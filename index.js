@@ -127,6 +127,7 @@ app.use((err, req, res, next) => {
 // API routes
 app.use('/auth', authRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/v1/auth', authRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/carriers', carriersRouter);
 app.use('/api/invoices', invoicesRouter);

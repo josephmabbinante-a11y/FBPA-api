@@ -18,10 +18,12 @@ async function registerHandler(req, res) {
       return res.status(409).json({ error: 'User already exists' });
     }
 
-    // Store plain text password (not secure)
+    // Hash password before saving
+    const bcrypt = await import('bcryptjs');
+    const passwordHash = await bcrypt.default.hash(password, 10);
     const newUser = new User({
       email,
-      password: password,
+      passwordHash,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
