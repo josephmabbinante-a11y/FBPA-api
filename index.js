@@ -21,7 +21,7 @@ import ediRouter from './edi.js';
 import authRouter from './auth.js';
 
 // Load environment variables from .env (already loaded above)
-const mongoUriEnvKeys = ['MONGODB_URI', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
+const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
 const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
   const value = process.env[key];
   return typeof value === 'string' && value.trim().length > 0;
