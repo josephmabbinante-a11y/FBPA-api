@@ -6,7 +6,7 @@ const router = express.Router();
 
 async function registerHandler(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -34,15 +34,12 @@ async function registerHandler(req, res) {
     }
     console.log('User model:', User);
     const newUser = new User({
-      email,
-      passwordHash,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      email: email.toLowerCase(),
+      name,
+      passwordHash
     });
-
     await newUser.save();
-
-    res.status(201).json({ user: { id: newUser.id, email: newUser.email } });
+    res.status(201).json({ message: 'User created' });
   } catch (err) {
     console.error('[auth/signup] Error:', err);
     res.status(500).json({ error: err.message });
