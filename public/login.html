@@ -47,8 +47,8 @@
   <script>
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const email = this.email.value;
-      const password = this.password.value;
+      const email = this.email.value.trim();
+      const password = this.password.value.trim();
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
