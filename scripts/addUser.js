@@ -1,4 +1,6 @@
 // Usage: node scripts/addUser.js <email> <password> <name>
+import dotenv from 'dotenv';
+dotenv.config();
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 

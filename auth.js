@@ -7,18 +7,16 @@ const router = express.Router();
 
 async function registerHandler(req, res) {
   try {
-    const { email, password } = req.body;
-
+    let { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-
+    email = email.toLowerCase();
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
     }
-
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = new User({
       email,
@@ -26,9 +24,7 @@ async function registerHandler(req, res) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-
     await newUser.save();
-
     res.status(201).json({ user: { id: newUser.id, email: newUser.email } });
   } catch (err) {
     console.error('[auth/signup] Error:', err);
@@ -58,11 +54,11 @@ router.get('/login', (req, res) => {
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-
+    email = email.toLowerCase();
     // Default login fallback
     if (email === 'test@example.com' && password === 'test123') {
       return res.json({
@@ -70,21 +66,18 @@ router.post('/login', async (req, res) => {
         token: 'default-token'
       });
     }
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-
-      // Debug logging for password comparison
-      console.log('[auth/login] Submitted password:', password);
-      console.log('[auth/login] Stored hash:', user.passwordHash);
-      const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-      console.log('[auth/login] Password match result:', passwordMatches);
-      if (!passwordMatches) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-
+    // Debug logging for password comparison
+    console.log('[auth/login] Submitted password:', password);
+    console.log('[auth/login] Stored hash:', user.passwordHash);
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    console.log('[auth/login] Password match result:', passwordMatches);
+    if (!passwordMatches) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
     res.json({ user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error('[auth/login] Error:', err);
