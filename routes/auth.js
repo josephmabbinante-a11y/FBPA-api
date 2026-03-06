@@ -1,3 +1,21 @@
+// Simple password reset endpoint
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: "Email and new password are required." });
+    }
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: "Password reset successful." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
