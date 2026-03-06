@@ -18,14 +18,21 @@ async function registerHandler(req, res) {
       return res.status(409).json({ error: 'User already exists' });
     }
 
-    // Hash password before saving
+    // Debug logging
+    console.log('Register payload:', req.body);
+    console.log('Password before hash:', password);
     const bcrypt = await import('bcryptjs');
+    if (!bcrypt || !bcrypt.default || typeof bcrypt.default.hash !== 'function') {
+      console.error('bcryptjs not loaded or hash function missing');
+      return res.status(500).json({ error: 'bcryptjs not loaded.' });
+    }
     const passwordHash = await bcrypt.default.hash(password, 10);
     console.log('Generated passwordHash:', passwordHash);
     if (!passwordHash) {
       console.error('Failed to generate passwordHash for:', email);
       return res.status(500).json({ error: 'Failed to hash password.' });
     }
+    console.log('User model:', User);
     const newUser = new User({
       email,
       passwordHash,
