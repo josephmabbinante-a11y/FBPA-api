@@ -27,9 +27,9 @@ const tenantGuard = (req, res, next) => {
 };
 
 // --- Feature Routes ---
-import customersRouter from '../routes/customers.js';
-import loadsRouter from '../routes/loads.js';
-import authRouter from '../routes/auth.js';
+import customersRouter from './routes/customers.js';
+import loadsRouter from './routes/loads.js';
+import authRouter from './routes/auth.js';
 // Add other routers as needed
 
 app.use('/api/customers', customersRouter);
