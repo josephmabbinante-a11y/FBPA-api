@@ -14,6 +14,8 @@ router.post("/register", loginValidators, validate, async (req, res) => {
       return res.status(503).json({ error: "Database unavailable" });
     }
 
+    // Log req.body to confirm password is received
+    console.log('Register req.body:', req.body);
     const { email, password, name } = req.body;
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
@@ -43,12 +45,15 @@ router.post("/register", loginValidators, validate, async (req, res) => {
 router.post("/login", loginValidators, validate, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
+      console.log(`[LOGIN DEBUG] Database unavailable for path: ${req.path}`);
       return res.status(503).json({ error: "Database unavailable" });
     }
 
+    // Log request path and body
+    console.log(`[LOGIN DEBUG] Request path: ${req.path}`);
+    console.log(`[LOGIN DEBUG] Request body:`, req.body);
     const { email, password } = req.body;
     console.log(`[LOGIN DEBUG] Attempting login for email: '${email}'`);
-
 
     console.log(`[LOGIN DEBUG] Querying for user:`, { email: email.toLowerCase() });
     const user = await User.findOne({ email: email.toLowerCase() });

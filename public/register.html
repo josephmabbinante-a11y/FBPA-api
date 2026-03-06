@@ -40,7 +40,8 @@
         msg.style.color = 'red';
         return;
       }
-      const res = await fetch('/auth/register', {
+      // Update fetch URL to match backend route
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name })
