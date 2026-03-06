@@ -21,7 +21,12 @@ import ediRouter from './edi.js';
 import authRouter from './auth.js';
 
 // Load environment variables from .env (already loaded above)
-const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
+const mongoUriEnvKeys = ['MONGODB_URI', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
+const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
+  const value = process.env[key];
+  return typeof value === 'string' && value.trim().length > 0;
+});
+const MONGODB_URI = (mongoUriEnvKey ? process.env[mongoUriEnvKey] : '').trim();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
 const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
@@ -61,6 +66,9 @@ const allowedOrigins = new Set(
 const hasUriPlaceholders = /<[^>]+>/.test(MONGODB_URI);
 
 if (MONGODB_URI && !hasUriPlaceholders) {
+  if (mongoUriEnvKey !== 'MONGODB_URI') {
+    console.warn(`[mongodb] Using ${mongoUriEnvKey} (preferred key is MONGODB_URI).`);
+  }
   mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 8000,
   })
@@ -73,7 +81,7 @@ if (MONGODB_URI && !hasUriPlaceholders) {
 } else if (hasUriPlaceholders) {
   console.warn('[mongodb] MONGODB_URI contains placeholder brackets. Update .env with real credentials.');
 } else {
-  console.warn('[mongodb] MONGODB_URI not set, running without database');
+  console.warn(`[mongodb] No Mongo URI found. Checked keys: ${mongoUriEnvKeys.join(', ')}. Running without database.`);
 }
 
 app.use(cors({
