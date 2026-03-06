@@ -1,5 +1,6 @@
 // ...existing code...
 import express from 'express';
+import bcrypt from 'bcryptjs';
 import { User } from './models.js';
 
 const router = express.Router();
@@ -78,13 +79,8 @@ router.post('/login', async (req, res) => {
       return res.json({
         user: { id: 'default', email: 'test@example.com', name: 'Test User', roles: ['user'] },
         token: 'default-token'
-      });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user || user.password !== password) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log('Saving user:', { email: email.toLowerCase(), name, passwordHash });
 
     res.json({ user: { id: user.id, email: user.email } });
   } catch (err) {
