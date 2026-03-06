@@ -32,9 +32,17 @@ router.post("/register", loginValidators, validate, async (req, res) => {
       return res.status(503).json({ error: "Database unavailable" });
     }
 
-    // Log req.body to confirm password is received
+    // Log req.body and check for empty/undefined values
     console.log('Register req.body:', req.body);
     const { email, password, name } = req.body;
+    if (!email || typeof email !== 'string' || !password || typeof password !== 'string') {
+      console.error('Invalid registration payload:', req.body);
+      return res.status(400).json({ error: 'Email and password are required and must be strings.' });
+    }
+    if (password.trim() === '') {
+      console.error('Empty password received:', req.body);
+      return res.status(400).json({ error: 'Password cannot be empty.' });
+    }
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(409).json({ error: "Email already registered" });
