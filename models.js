@@ -1,4 +1,4 @@
-import User from './Users.js';
+import User from './models/Users.js';
 import Invoice from './Invoice.js';
 import Audit from './Audit.js';
 import Exception from './Exception.js';

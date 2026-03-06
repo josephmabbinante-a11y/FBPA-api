@@ -49,6 +49,11 @@ router.post("/register", loginValidators, validate, async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    console.log('Generated passwordHash:', passwordHash);
+    if (!passwordHash) {
+      console.error('Failed to generate passwordHash for:', email);
+      return res.status(500).json({ error: 'Failed to hash password.' });
+    }
     const user = new User({
       email: email.toLowerCase(),
       passwordHash,

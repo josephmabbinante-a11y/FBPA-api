@@ -21,6 +21,11 @@ async function registerHandler(req, res) {
     // Hash password before saving
     const bcrypt = await import('bcryptjs');
     const passwordHash = await bcrypt.default.hash(password, 10);
+    console.log('Generated passwordHash:', passwordHash);
+    if (!passwordHash) {
+      console.error('Failed to generate passwordHash for:', email);
+      return res.status(500).json({ error: 'Failed to hash password.' });
+    }
     const newUser = new User({
       email,
       passwordHash,
