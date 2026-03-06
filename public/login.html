@@ -36,7 +36,7 @@
       <div style="margin-top:1em;">
         <a href="/register.html" style="color:#1877F2;text-decoration:none;font-size:0.98em;">Sign up</a>
         &nbsp;|&nbsp;
-        <a href="#" style="color:#1877F2;text-decoration:none;font-size:0.98em;opacity:0.6;cursor:not-allowed;">Forgot password?</a>
+        <a href="/reset-password.html" style="color:#1877F2;text-decoration:none;font-size:0.98em;">Forgot password?</a>
         <br><br>
         <span style="font-size:0.95em;color:#b0b3b8;">You can use this login page for both local (localhost:4000) and production (hdhtransport.com) environments. Just ensure the backend API URL is correct in production.</span>
       </div>
@@ -47,14 +47,19 @@
   <script>
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const email = this.email.value;
+      const email = this.email.value.trim();
       const password = this.password.value;
+      const msg = document.getElementById('message');
+      if (!email || !password) {
+        msg.textContent = 'Email and password are required.';
+        msg.style.color = 'red';
+        return;
+      }
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const msg = document.getElementById('message');
       if (res.ok) {
         const data = await res.json();
         msg.textContent = 'Login successful! Redirecting...';

@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 
 const carrierSchema = new mongoose.Schema(
+import mongoose from "mongoose";
+
+const carrierSchema = new mongoose.Schema(
   {
     id: {
       type: String,
@@ -12,6 +15,7 @@ const carrierSchema = new mongoose.Schema(
       required: true
     },
     nameLower: {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
       type: String
     },
     mcNumber: {

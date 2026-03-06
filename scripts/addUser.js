@@ -1,10 +1,11 @@
 // Usage: node scripts/addUser.js <email> <password> <name>
+
+import 'dotenv/config';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://josephmabbinante_db_user:tEkZDundjpXeSa2G@cluster0.fvycshx.mongodb.net/fbpa-db?appName=Cluster0';
 import User from '../models/Users.js';
 
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://FBPADB:Opscale2020%24@cluster0.fvycshx.mongodb.net/?appName=Cluster0';
 async function addUser(email, password, name = '') {
   try {
     console.log('[DEBUG] Connecting to MongoDB:', MONGODB_URI);

@@ -1,3 +1,21 @@
+// Simple password reset endpoint
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: "Email and new password are required." });
+    }
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: "Password reset successful." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 import express from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -14,13 +32,28 @@ router.post("/register", loginValidators, validate, async (req, res) => {
       return res.status(503).json({ error: "Database unavailable" });
     }
 
+    // Log req.body and check for empty/undefined values
+    console.log('Register req.body:', req.body);
     const { email, password, name } = req.body;
+    if (!email || typeof email !== 'string' || !password || typeof password !== 'string') {
+      console.error('Invalid registration payload:', req.body);
+      return res.status(400).json({ error: 'Email and password are required and must be strings.' });
+    }
+    if (password.trim() === '') {
+      console.error('Empty password received:', req.body);
+      return res.status(400).json({ error: 'Password cannot be empty.' });
+    }
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(409).json({ error: "Email already registered" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    console.log('Generated passwordHash:', passwordHash);
+    if (!passwordHash) {
+      console.error('Failed to generate passwordHash for:', email);
+      return res.status(500).json({ error: 'Failed to hash password.' });
+    }
     const user = new User({
       email: email.toLowerCase(),
       passwordHash,
@@ -43,13 +76,19 @@ router.post("/register", loginValidators, validate, async (req, res) => {
 router.post("/login", loginValidators, validate, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
+      console.log(`[LOGIN DEBUG] Database unavailable for path: ${req.path}`);
       return res.status(503).json({ error: "Database unavailable" });
     }
 
+    // Log request path and body
+    console.log(`[LOGIN DEBUG] Request path: ${req.path}`);
+    console.log(`[LOGIN DEBUG] Request body:`, req.body);
     const { email, password } = req.body;
     const searchEmail = email.toLowerCase();
     console.log(`[LOGIN DEBUG] Attempting login for email: '${email}' (searching for: '${searchEmail}')`);
 
+    console.log(`[LOGIN DEBUG] Querying for user:`, { email: email.toLowerCase() });
+    const user = await User.findOne({ email: email.toLowerCase() });
     const user = await User.findOne({ email: searchEmail });
     console.log(`[LOGIN DEBUG] Query result:`, user);
     if (!user) {

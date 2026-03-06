@@ -1,26 +1,36 @@
-// ...existing code...
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import { User } from './models.js';
 
 const router = express.Router();
 
+const normalizeEmail = (email = '') => email.trim().toLowerCase();
+const isDatabaseConnected = () => mongoose.connection.readyState === 1;
+
 async function registerHandler(req, res) {
   try {
-    const { email, password } = req.body;
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
 
-    if (!email || !password) {
+    const { email, password, name } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail || typeof password !== 'string' || password.trim() === '') {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = new User({
+      email: normalizedEmail,
+      name: typeof name === 'string' ? name.trim() : '',
+      passwordHash,
       email,
       passwordHash,
       createdAt: new Date(),
@@ -28,49 +38,76 @@ async function registerHandler(req, res) {
     });
 
     await newUser.save();
-
-    res.status(201).json({ user: { id: newUser.id, email: newUser.email } });
+    return res.status(201).json({
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        roles: newUser.roles,
+      },
+    });
   } catch (err) {
-    console.error('[auth/signup] Error:', err);
-    res.status(500).json({ error: err.message });
+    console.error('[auth/register] Error:', err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
-// GET /auth/register - Friendly message for browser access
 router.get('/register', (req, res) => {
-  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to register' });
+  return res.status(405).json({
+    error: 'Method Not Allowed',
+    message: 'Please use POST request to register',
+  });
 });
 
-// POST /auth/register
 router.post('/register', registerHandler);
 
-// Backward-compatible alias
 router.get('/signup', (req, res) => {
-  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to register' });
+  return res.status(405).json({
+    error: 'Method Not Allowed',
+    message: 'Please use POST request to register',
+  });
 });
+
 router.post('/signup', registerHandler);
 
-// GET /api/auth/login - Friendly message for browser access
 router.get('/login', (req, res) => {
-  res.status(405).json({ error: 'Method Not Allowed', message: 'Please use POST request to log in' });
+  return res.status(405).json({
+    error: 'Method Not Allowed',
+    message: 'Please use POST request to log in',
+  });
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+
     const { email, password } = req.body;
-    if (!email || !password) {
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail || typeof password !== 'string' || password.trim() === '') {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Default login fallback
-    if (email === 'test@example.com' && password === 'test123') {
-      return res.json({
-        user: { id: 'default', email: 'test@example.com', name: 'Test User', roles: ['user'] },
-        token: 'default-token'
-      });
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash || '');
+    if (!passwordMatches) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    return res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roles: user.roles,
+      },
+    });
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -88,7 +125,35 @@ router.post('/login', async (req, res) => {
     res.json({ user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error('[auth/login] Error:', err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+
+    const { email, newPassword } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail || typeof newPassword !== 'string' || newPassword.trim() === '') {
+      return res.status(400).json({ error: 'Email and new password are required.' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.json({ message: 'Password reset successful.' });
+  } catch (err) {
+    console.error('[auth/reset-password] Error:', err);
+    return res.status(500).json({ error: err.message });
   }
 });
 

@@ -2,6 +2,9 @@
   "name": "fbpa-api",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js"
@@ -13,6 +16,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
+    "lucide-react": "^0.577.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.1",
     "multer": "^2.0.2",

@@ -20,9 +20,17 @@ const userSchema = new mongoose.Schema(
     roles: {
       type: [String],
       default: ["user"]
+    },
+    resetPasswordToken: {
+      type: String,
+      default: null
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null
     }
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Users", userSchema);
+export default mongoose.model("User", userSchema);

@@ -1,6 +1,19 @@
 import express from 'express';
 
 const router = express.Router();
+// GET metrics endpoint
+router.get('/metrics', async (req, res) => {
+  // Example metrics response, replace with real logic as needed
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    metrics: {
+      totalQuotes: 0,
+      avgConfidence: 0,
+      recentRequests: [],
+    },
+  });
+});
 
 const EQUIPMENT_BASE_RATE_PER_MILE = {
   van: 1.95,
