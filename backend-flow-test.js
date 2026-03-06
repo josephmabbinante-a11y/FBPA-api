@@ -39,7 +39,7 @@ async function requestJson(path, options = {}) {
 async function run() {
   const port = String(4200 + Math.floor(Math.random() * 200));
   const baseUrl = `http://localhost:${port}`;
-  const server = spawn('node', ['server/index.js'], {
+  const server = spawn('node', ['index.js'], {
     env: { ...process.env, PORT: port },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
