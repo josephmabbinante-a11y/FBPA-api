@@ -31,6 +31,10 @@ async function registerHandler(req, res) {
       email: normalizedEmail,
       name: typeof name === 'string' ? name.trim() : '',
       passwordHash,
+      email,
+      passwordHash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     await newUser.save();
@@ -104,6 +108,21 @@ router.post('/login', async (req, res) => {
         roles: user.roles,
       },
     });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+      // Debug logging for password comparison
+      console.log('[auth/login] Submitted password:', password);
+      console.log('[auth/login] Stored hash:', user.passwordHash);
+      const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+      console.log('[auth/login] Password match result:', passwordMatches);
+      if (!passwordMatches) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+    res.json({ user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error('[auth/login] Error:', err);
     return res.status(500).json({ error: err.message });

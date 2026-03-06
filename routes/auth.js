@@ -84,19 +84,23 @@ router.post("/login", loginValidators, validate, async (req, res) => {
     console.log(`[LOGIN DEBUG] Request path: ${req.path}`);
     console.log(`[LOGIN DEBUG] Request body:`, req.body);
     const { email, password } = req.body;
-    console.log(`[LOGIN DEBUG] Attempting login for email: '${email}'`);
+    const searchEmail = email.toLowerCase();
+    console.log(`[LOGIN DEBUG] Attempting login for email: '${email}' (searching for: '${searchEmail}')`);
 
     console.log(`[LOGIN DEBUG] Querying for user:`, { email: email.toLowerCase() });
     const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: searchEmail });
     console.log(`[LOGIN DEBUG] Query result:`, user);
     if (!user) {
-      console.log(`[LOGIN DEBUG] No user found for email: '${email.toLowerCase()}'`);
+      console.log(`[LOGIN DEBUG] No user found for email: '${searchEmail}'`);
       return res.status(401).json({ error: "No account found for this email address." });
     }
     console.log(`[LOGIN DEBUG] User found:`, user.email, user.id, user);
+    console.log(`[LOGIN DEBUG] Stored passwordHash:`, user.passwordHash);
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-    console.log(`[LOGIN DEBUG] Password match:`, passwordMatches);
+    console.log(`[LOGIN DEBUG] Submitted password: '${password}'`);
+    console.log(`[LOGIN DEBUG] Password match result:`, passwordMatches);
     if (!passwordMatches) {
       return res.status(401).json({ error: "Incorrect password. Please try again or reset your password." });
     }
