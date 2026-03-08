@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   res.send(`
     <h2>Welcome to the FBPA API</h2>
     <p><a href='/register.html'>Register a new user</a></p>
-    <p>API is running. Try <a href='/api/v1/auth/login'>/api/v1/auth/login</a> (POST) for login.</p>
+    <p>API is running. Use <code>POST /api/v1/auth/login</code> for login.</p>
   `);
 });
 
