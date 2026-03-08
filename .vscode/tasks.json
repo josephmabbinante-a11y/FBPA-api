@@ -1,0 +1,29 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Smoke Test: Add User",
+			"type": "shell",
+			"command": "node scripts/addUser.js testuser@example.com testpassword Test User",
+			"args": [],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Smoke Test: Add User ES Module",
+			"type": "shell",
+			"command": "node scripts/addUser.js testuser@example.com testpassword Test User",
+			"args": [],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Smoke Test: Add User ES Module (Users.js)",
+			"type": "shell",
+			"command": "node scripts/addUser.js testuser@example.com testpassword Test User",
+			"args": [],
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}
