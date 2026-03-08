@@ -5,15 +5,24 @@ import bcrypt from 'bcryptjs';
 const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash: { type: String, required: true },
+  password: { type: String, required: true },
   name: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
 }, { timestamps: true });
+
+// Pre-save hook for password hashing
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+// Method to compare passwords
 UserSchema.methods.comparePassword = async function (candidatePassword) {
-  if (!this.passwordHash) return false;
-  return await bcrypt.compare(candidatePassword, this.passwordHash);
+  return await bcrypt.compare(candidatePassword, this.password);
 };
+
 export const User = mongoose.model('User', UserSchema);
 
 // Invoice model

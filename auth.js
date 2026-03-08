@@ -1,24 +1,6 @@
-
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-
-// User schema and model (moved from User.js)
-const UserSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true, index: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash: { type: String, required: true },
-  name: { type: String, default: "" },
-  role: { type: String, default: "user" }
-}, { timestamps: true });
-
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  if (!this.passwordHash) return false;
-  return await bcrypt.compare(candidatePassword, this.passwordHash);
-};
-
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
+import { User } from './models.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'fbpa_4f8e2b7c9d1a_secure_random_2026';
@@ -43,7 +25,7 @@ router.post('/signup', async (req, res) => {
     const newUser = new User({
       id: userId,
       email: email.toLowerCase(),
-      passwordHash: await bcrypt.hash(password, 10),
+      password, // Will be hashed by pre-save hook
       name: name || email.split('@')[0],
       role: role || 'user',
     });
@@ -71,7 +53,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Duplicate /signup logic for /register compatibility
+// Register endpoint (alias for signup)
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name, role } = req.body;
@@ -91,55 +73,7 @@ router.post('/register', async (req, res) => {
     const newUser = new User({
       id: userId,
       email: email.toLowerCase(),
-      passwordHash: await bcrypt.hash(password, 10),
-      name: name || email.split('@')[0],
-      role: role || 'user',
-    });
-    await newUser.save();
-
-    // Generate JWT token
-    const accessToken = jwt.sign(
-      { sub: newUser.id, email: newUser.email, role: newUser.role },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    return res.status(201).json({
-      accessToken,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-      },
-    });
-  } catch (error) {
-    console.error('[auth/register] Error:', error);
-    return res.status(500).json({ error: 'Server error during registration' });
-  }
-});
-
-// Duplicate /signup logic for /register compatibility
-router.post('/register', async (req, res) => {
-  try {
-    const { email, password, name, role } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
-    }
-
-    // Create new user
-    const userId = `u-${Date.now()}`;
-    const newUser = new User({
-      id: userId,
-      email: email.toLowerCase(),
-      passwordHash: await bcrypt.hash(password, 10),
+      password, // Will be hashed by pre-save hook
       name: name || email.split('@')[0],
       role: role || 'user',
     });
