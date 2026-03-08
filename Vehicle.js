@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const vehicleSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
   type: { type: String },
   make: { type: String },
   model: { type: String },

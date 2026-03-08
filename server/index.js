@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import customersRouter from './routes/customers.js';
+import loadsRouter from './routes/loads.js';
+import authRouter from './routes/auth.js';
 
 // --- Environment Setup ---
 dotenv.config();
@@ -48,9 +51,6 @@ const tenantGuard = (req, res, next) => {
 };
 
 // --- Feature Routes ---
-import customersRouter from './routes/customers.js';
-import loadsRouter from './routes/loads.js';
-import authRouter from './routes/auth.js';
 // Add other routers as needed
 
 app.use('/api/customers', customersRouter);
