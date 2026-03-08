@@ -67,9 +67,10 @@ router.post("/login", loginValidators, validate, async (req, res) => {
         return res.status(401).json({ success: false, message: "Incorrect password. Please try again or reset your password." });
       }
 
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        console.error('[LOGIN] JWT_SECRET environment variable is not set');
+      const rawJwtSecret = process.env.JWT_SECRET;
+      const jwtSecret = typeof rawJwtSecret === 'string' ? rawJwtSecret.trim() : '';
+      if (!jwtSecret || jwtSecret.length < 32) {
+        console.error('[LOGIN] Invalid JWT_SECRET configuration: must be at least 32 non-whitespace characters');
         return res.status(500).json({ success: false, message: "Server configuration error. Please contact support." });
       }
       const expiresIn = process.env.JWT_EXPIRES_IN || '1h';
