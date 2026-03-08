@@ -1,14 +1,9 @@
 import mongoose from "mongoose";
 
-const invoiceSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
-  loadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Load' },
-  amount: { type: Number },
-  status: { type: String, default: 'unpaid' },
-  // ...other invoice fields
-}, { timestamps: true });
-      unique: true
-    },
+const invoiceSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    loadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Load' },
     amount: {
       type: Number,
       required: true

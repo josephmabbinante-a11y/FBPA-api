@@ -1,7 +1,11 @@
 import fetch from 'node-fetch';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
 
 async function testRegister() {
-  const url = 'https://mongodb-production-744f.up.railway.app/api/auth/register';
+  const url = `${BASE_URL}/api/auth/register`;
   const payload = {
     email: 'apitestuser@example.com',
     password: 'apitestpassword',
@@ -21,7 +25,8 @@ async function testRegister() {
   }
 }
 
-// Run the test
-if (require.main === module) {
+// ES module equivalent of require.main === module
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
   testRegister();
 }
