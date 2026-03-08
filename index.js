@@ -18,7 +18,7 @@ import reportsRouter from './reports.js';
 import uploadsRouter from './uploads.js';
 import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
-import authRouter from './auth.js';
+import authRouter from './routes/auth.js';
 
 // Load environment variables from .env (already loaded above)
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
