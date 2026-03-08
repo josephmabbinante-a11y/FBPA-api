@@ -9,39 +9,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.hdhtransport.com/api-v1-auth-login</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.hdhtransport.com/login.html</loc>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/v1/auth/register</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/invoices</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/audits</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/exceptions</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/dashboard</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/reports</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.hdhtransport.com/api/uploads</loc>
-    <priority>0.7</priority>
   </url>
 </urlset>

@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema(
       default: ""
     }
   },
+  // _id: false disables Mongoose's auto ObjectId so our custom String UUID _id is used exclusively
   { timestamps: true, _id: false }
 );
 
