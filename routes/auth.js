@@ -1,5 +1,5 @@
 import express from "express";
-import jwt from "jsonwebtoken";
+
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import User from "../models/Users.js";
@@ -66,13 +66,7 @@ router.post("/login", loginValidators, validate, async (req, res) => {
       return res.status(401).json({ error: "Incorrect password. Please try again or reset your password." });
     }
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
-    );
-
-    res.json({ token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
+    res.json({ user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
     console.error('[LOGIN DEBUG] Error during login:', error);
     res.status(500).json({ error: error.message });
