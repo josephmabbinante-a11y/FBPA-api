@@ -1,7 +1,4 @@
-// ...existing code...
 import dotenv from 'dotenv';
-dotenv.config();
-const PORT = process.env.PORT || 4000;
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -20,7 +17,9 @@ import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
 import authRouter from './routes/auth.js';
 
-// Load environment variables from .env (already loaded above)
+dotenv.config();
+const PORT = process.env.PORT || 4000;
+
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
 const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
   const value = process.env[key];
@@ -225,8 +224,4 @@ app.use((err, req, res, next) => {
   }
 
   return next(err);
-});
-
-app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${PORT}`);
 });

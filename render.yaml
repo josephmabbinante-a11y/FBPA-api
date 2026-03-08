@@ -2,7 +2,7 @@ services:
   - type: web
     name: fbpa-api
     runtime: node
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: node index.js
     healthCheckPath: /api/health
     envVars:
