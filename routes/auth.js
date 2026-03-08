@@ -9,7 +9,9 @@ const router = express.Router();
 
 function resolveJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  if (process.env.NODE_ENV !== "production") return "dev_secret_change_me";
+  if (process.env.JWT_USE_DEV_SECRET === "true" && process.env.NODE_ENV !== "production") {
+    return "dev_secret_change_me";
+  }
   return null;
 }
 
@@ -20,10 +22,18 @@ function signAccessToken(payload) {
 }
 
 function tryDevFallbackLogin(email, password) {
-  if (process.env.NODE_ENV === "production") return null;
+  const devLoginEnabled = process.env.DEV_LOGIN_ENABLED === "true";
+  if (!devLoginEnabled) return null;
 
-  const devEmail = (process.env.DEV_LOGIN_EMAIL || "dev@opscale.local").toLowerCase();
-  const devPassword = process.env.DEV_LOGIN_PASSWORD || "dev12345";
+  const devEmailEnv = process.env.DEV_LOGIN_EMAIL;
+  const devPasswordEnv = process.env.DEV_LOGIN_PASSWORD;
+
+  if (!devEmailEnv || !devPasswordEnv) {
+    return null;
+  }
+
+  const devEmail = devEmailEnv.toLowerCase();
+  const devPassword = devPasswordEnv;
 
   if (email.toLowerCase() !== devEmail || password !== devPassword) {
     return null;

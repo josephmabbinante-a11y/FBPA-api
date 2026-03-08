@@ -59,21 +59,11 @@ export const carriers = [
 export const invoices = [
   {
     id: invoiceId1,
-    type: 'AR',
-    customerId: customerId1,
-    carrierId: carrierId1,
-    customerName: 'Acme Corp',
-    carrierName: 'Fast Freight',
-    carrier: 'Fast Freight',
     invoiceNumber: '1001',
     amount: 1200.00,
-    accessorials: 50.00,
-    fuelSurcharge: 30.00,
-    contractRate: 1120.00,
-    status: 'Pending',
-    dueDate: new Date('2026-03-01'),
-    issueDate: new Date('2026-02-01'),
-    paymentTerms: 'Net 30',
+    status: 'pending',
+    customerId: customerId1,
+    carrierId: carrierId1,
   },
 ];
 

@@ -6,7 +6,31 @@ import connectDB from "./db/connection.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+const allowedOriginsEnv = process.env.CORS_ORIGIN || "";
+const allowedOrigins = allowedOriginsEnv
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (e.g., mobile apps, curl, server-to-server)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // If no allowlist is configured, fall back to allowing all origins
+    if (allowedOrigins.length === 0) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 
@@ -20,6 +44,11 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Backwards-compatible alias
+app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 

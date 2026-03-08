@@ -7,7 +7,8 @@ const auditSchema = new mongoose.Schema(
     id: {
       type: String,
       default: uuidv4,
-      unique: true
+      unique: true,
+      sparse: true
     },
     userId: {
       type: String,

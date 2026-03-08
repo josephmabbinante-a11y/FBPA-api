@@ -7,7 +7,8 @@ const exceptionSchema = new mongoose.Schema(
     id: {
       type: String,
       default: uuidv4,
-      unique: true
+      unique: true,
+      sparse: true
     },
     code: {
       type: String,
