@@ -25,6 +25,7 @@ import uploadsRouter from './uploads.js';
 import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
 import authRouter from './routes/auth.js';
+import auditsRouter from './routes/audits.js';
 import { verifyToken } from './middleware/auth.js';
 
 // Load environment variables from .env (already loaded above)
@@ -145,6 +146,7 @@ app.use((err, req, res, next) => {
 // API routes
 // ...existing code...
 app.use('/api/auth', authRouter);
+app.use('/api/audits', verifyToken, auditsRouter);
 app.use('/api/customers', verifyToken, customersRouter);
 app.use('/api/carriers', verifyToken, carriersRouter);
 app.use('/api/invoices', verifyToken, invoicesRouter);
