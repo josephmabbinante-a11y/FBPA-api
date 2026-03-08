@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const driverSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   licenseNumber: { type: String },
   phone: { type: String },

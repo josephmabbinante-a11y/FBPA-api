@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const loadSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
   tripId: { type: String },
   origin: { type: String },
   destination: { type: String },
