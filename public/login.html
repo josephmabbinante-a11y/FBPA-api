@@ -63,11 +63,11 @@
           localStorage.setItem('jwt', data.token);
         }
         setTimeout(function() {
-          window.location.href = '/dashboard';
+          window.location.href = '/dashboard.html';
         }, 1200);
       } else {
         const data = await res.json();
-        msg.textContent = data.error || 'Invalid email or password';
+        msg.textContent = data.message || data.error || 'Invalid email or password';
         msg.style.color = '#ff4d4f';
       }
     });
