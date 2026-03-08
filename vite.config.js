@@ -12,11 +12,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'https://mongodb-production-744f.up.railway.app',
         changeOrigin: true,
       },
       '/auth': {
-        target: 'http://localhost:4000',
+        target: 'https://mongodb-production-744f.up.railway.app',
         changeOrigin: true,
       },
     },
