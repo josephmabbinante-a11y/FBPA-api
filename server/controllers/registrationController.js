@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import User from '../models/Users.js';
+import User from '../../models/Users.js';
 import Organization from '../models/Organization.js'; // Create this model if not present
 
 export async function registerUserAndOrganization(req, res) {

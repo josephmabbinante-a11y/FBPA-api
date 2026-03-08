@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 // Example: get token and tenantId from localStorage or context
 function getAuthToken() {
-  return localStorage.getItem('jwtToken');
+  return localStorage.getItem('accessToken');
 }
 function getTenantId() {
   return localStorage.getItem('tenantId');
