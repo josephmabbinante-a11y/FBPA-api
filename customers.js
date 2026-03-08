@@ -166,6 +166,37 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Update customer (partial)
+router.patch('/:id', async (req, res) => {
+  try {
+    const updates = req.body || {};
+    const customer = await Customer.findOne({ id: req.params.id });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    if (updates.name !== undefined) {
+      customer.name = normalizeString(updates.name);
+      customer.nameLower = normalizeKey(updates.name);
+    }
+    if (updates.email !== undefined) {
+      customer.email = normalizeString(updates.email);
+      customer.emailLower = normalizeKey(updates.email);
+    }
+    if (updates.phone !== undefined) customer.phone = normalizeString(updates.phone);
+    if (updates.company !== undefined) customer.company = normalizeString(updates.company);
+    if (updates.industry !== undefined) customer.industry = normalizeString(updates.industry);
+    if (updates.taxId !== undefined) customer.taxId = normalizeString(updates.taxId);
+    if (updates.billingAddress !== undefined) customer.billingAddress = normalizeString(updates.billingAddress);
+    if (updates.status !== undefined) customer.status = updates.status;
+
+    customer.updatedAt = new Date();
+    await customer.save();
+
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Upload customers via CSV
 router.post('/upload-csv', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
