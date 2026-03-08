@@ -2,6 +2,12 @@
 import dotenv from 'dotenv';
 dotenv.config();
 const PORT = process.env.PORT || 4000;
+
+// Validate JWT_SECRET at startup
+const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
+if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
+  console.warn('[startup] WARNING: JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.');
+}
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -19,6 +25,7 @@ import uploadsRouter from './uploads.js';
 import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
 import authRouter from './routes/auth.js';
+import { verifyToken } from './middleware/auth.js';
 
 // Load environment variables from .env (already loaded above)
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
@@ -138,17 +145,17 @@ app.use((err, req, res, next) => {
 // API routes
 // ...existing code...
 app.use('/api/auth', authRouter);
-app.use('/api/customers', customersRouter);
-app.use('/api/carriers', carriersRouter);
-app.use('/api/invoices', invoicesRouter);
-app.use('/api/exceptions', exceptionsRouter);
-app.use('/api/messages', messagesRouter);
-app.use('/api/rate-logic', rateLogicRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/reports', reportsRouter);
-app.use('/api/uploads', uploadsRouter);
-app.use('/api/invoice-images', invoiceImagesRouter);
-app.use('/api/edi', ediRouter);
+app.use('/api/customers', verifyToken, customersRouter);
+app.use('/api/carriers', verifyToken, carriersRouter);
+app.use('/api/invoices', verifyToken, invoicesRouter);
+app.use('/api/exceptions', verifyToken, exceptionsRouter);
+app.use('/api/messages', verifyToken, messagesRouter);
+app.use('/api/rate-logic', verifyToken, rateLogicRouter);
+app.use('/api/dashboard', verifyToken, dashboardRouter);
+app.use('/api/reports', verifyToken, reportsRouter);
+app.use('/api/uploads', verifyToken, uploadsRouter);
+app.use('/api/invoice-images', verifyToken, invoiceImagesRouter);
+app.use('/api/edi', verifyToken, ediRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
