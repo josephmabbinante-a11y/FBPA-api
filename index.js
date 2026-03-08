@@ -1,7 +1,10 @@
+// ...existing code...
+import dotenv from 'dotenv';
+dotenv.config();
+const PORT = process.env.PORT || 4000;
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import customersRouter from './customers.js';
@@ -15,39 +18,57 @@ import reportsRouter from './reports.js';
 import uploadsRouter from './uploads.js';
 import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
-import authRouter from './auth.js';
-import loadboardRouter from './loadboard.js';
+import authRouter from './routes/auth.js';
 
-dotenv.config();
-
+// Load environment variables from .env (already loaded above)
+const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
+const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
+  const value = process.env[key];
+  return typeof value === 'string' && value.trim().length > 0;
+});
+const MONGODB_URI = (mongoUriEnvKey ? process.env[mongoUriEnvKey] : '').trim();
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
+const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
 const app = express();
-const PORT = process.env.PORT || 4000;
-const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
+// ...existing code...
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, '../dist');
 
+// Allow only Vercel frontend and custom domains for CORS
 const defaultAllowedOrigins = [
-  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://express-git-fbpa-josephmabbinante-a11ys-projects.vercel.app',
+  'https://www.hdhtransport.com',
+  'https://hdhtransport.com',
+  'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
+  'https://fbpa-qh4fmw9tg-josephmabbinante-a11ys-projects.vercel.app',
+  'https://vercel.com/josephmabbinante-a11ys-projects/fbpa-ui'
+  , 'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  'http://localhost:5176',
-  'http://localhost:5177',
-  'http://localhost:5178',
-  'http://localhost:5179',
-  'https://hdhtransport.com',
+  ''
+  // Add any custom production domains here
 ];
+// ...existing code...
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, '').toLowerCase())
   .filter(Boolean);
 
-const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
+const allowedOrigins = new Set(
+  [...defaultAllowedOrigins, ...envAllowedOrigins]
+    .map((origin) => origin.trim().replace(/\/+$/, '').toLowerCase())
+);
 
 const hasUriPlaceholders = /<[^>]+>/.test(MONGODB_URI);
 
 if (MONGODB_URI && !hasUriPlaceholders) {
+  if (mongoUriEnvKey !== 'MONGODB_URI') {
+    console.warn(`[mongodb] Using ${mongoUriEnvKey} (preferred key is MONGODB_URI).`);
+  }
   mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 8000,
   })
@@ -60,26 +81,61 @@ if (MONGODB_URI && !hasUriPlaceholders) {
 } else if (hasUriPlaceholders) {
   console.warn('[mongodb] MONGODB_URI contains placeholder brackets. Update .env with real credentials.');
 } else {
-  console.warn('[mongodb] MONGODB_URI not set, running without database');
+  console.warn(`[mongodb] No Mongo URI found. Checked keys: ${mongoUriEnvKeys.join(', ')}. Running without database.`);
 }
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) {
       callback(null, true);
       return;
     }
+
+    const normalizedOrigin = origin.trim().replace(/\/+$/, '').toLowerCase();
+    if (allowedOrigins.has(normalizedOrigin)) {
+      callback(null, true);
+      return;
+    }
+
     callback(new Error(`CORS origin not allowed: ${origin}`));
   },
   credentials: true,
 }));
 
-app.use(express.json());
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  const origin = req.headers.origin || '-';
+  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString();
 
-// Auth routes
-app.use('/api/auth', authRouter);
+  res.on('finish', () => {
+    const durationMs = Date.now() - startedAt;
+    console.log(`[http] ${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs}ms origin=${origin} ip=${ip}`);
+  });
+
+  next();
+});
+
+
+console.log('[MIDDLEWARE] Before express.json()');
+app.use(express.json());
+console.log('[MIDDLEWARE] After express.json()');
+app.use(express.urlencoded({ extended: true }));
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    const contentType = req.headers['content-type'] || '';
+    console.error(`[bad-json] ${err.message} content-type=${contentType}`);
+    return res.status(400).json({
+      ok: false,
+      error: 'Invalid JSON in request body.',
+      hint: 'Send valid JSON like {"email":"name@example.com","password":"..."} with Content-Type: application/json',
+    });
+  }
+  next(err);
+});
 
 // API routes
+// ...existing code...
+app.use('/api/auth', authRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/carriers', carriersRouter);
 app.use('/api/invoices', invoicesRouter);
@@ -91,7 +147,6 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/invoice-images', invoiceImagesRouter);
 app.use('/api/edi', ediRouter);
-app.use('/api/loadboard', loadboardRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
@@ -115,6 +170,63 @@ if (process.env.SERVE_STATIC === 'true') {
   });
 }
 
+const server = app.listen(PORT, () => {
+  console.log(`FBPA API server running on http://localhost:${PORT}`);
+});
+
+// Graceful shutdown handling
+const gracefulShutdown = async (signal) => {
+  console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
+  
+  // Stop accepting new connections
+  server.close(() => {
+    console.log('[shutdown] HTTP server closed');
+  });
+  
+  // Close database connections
+  if (mongoose.connection.readyState !== 0) {
+    try {
+      await mongoose.connection.close();
+      console.log('[shutdown] MongoDB connection closed');
+    } catch (err) {
+      console.error('[shutdown] Error closing MongoDB connection:', err.message);
+    }
+  }
+  
+  console.log('[shutdown] Graceful shutdown complete');
+  process.exit(0);
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (err) => {
+  console.error('[error] Uncaught exception:', err);
+  console.error('[error] Stack:', err.stack);
+  // Exit immediately with error code for uncaught exceptions
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
+  // Exit immediately with error code for unhandled rejections
+  process.exit(1);
+});
+// Root route for friendly message
+app.get('/', (req, res) => {
+  res.send('API server is running!');
+});
+
+app.use((err, req, res, next) => {
+  if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
+    return res.status(403).json({ error: err.message });
+  }
+
+  return next(err);
+});
+
 app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${4000}`);
+  console.log(`FBPA API server running on http://localhost:${PORT}`);
 });

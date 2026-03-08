@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="login.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    .dashboard { max-width: 800px; margin: auto; }
+    h1 { color: #333; }
+    .summary, .trends { margin-top: 2em; }
+    .summary div, .trends div { margin-bottom: 1em; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>Dashboard</h1>
+    <div class="summary">
+      <h2>Summary</h2>
+      <div id="summary"></div>
+    </div>
+    <div class="trends">
+      <h2>Trends</h2>
+      <div id="trends"></div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const token = localStorage.getItem('jwt');
+      if (!token) {
+        window.location.href = '/login.html';
+      }
+    })();
+
+    async function loadDashboard() {
+      const res = await fetch('/api/dashboard');
+      if (!res.ok) {
+        document.getElementById('summary').textContent = 'Failed to load dashboard.';
+        return;
+      }
+      const data = await res.json();
+      const summary = data.summary || {};
+      const trends = data.trends || {};
+      document.getElementById('summary').innerHTML =
+        `<div>Total Invoices: ${summary.totalInvoices || 0}</div>` +
+        `<div>Total Exceptions: ${summary.totalExceptions || 0}</div>` +
+        `<div>Total Savings: $${summary.totalSavings || 0}</div>` +
+        `<div>Pending Review: ${summary.pendingReview || 0}</div>`;
+      document.getElementById('trends').innerHTML =
+        `<div>Invoice Trend: ${JSON.stringify(trends.invoiceTrend || [])}</div>` +
+        `<div>Exception Trend: ${JSON.stringify(trends.exceptionTrend || [])}</div>`;
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>

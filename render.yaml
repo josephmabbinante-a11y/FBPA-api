@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: fbpa-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SERVE_STATIC
+        value: false

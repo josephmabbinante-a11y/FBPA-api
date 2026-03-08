@@ -340,4 +340,29 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Update invoice (partial)
+router.patch('/:id', async (req, res) => {
+  try {
+    const updates = req.body || {};
+    const invoice = await Invoice.findOne({ id: req.params.id });
+    if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+
+    if (updates.status !== undefined) invoice.status = updates.status;
+    if (updates.amount !== undefined) invoice.amount = toNumber(updates.amount);
+    if (updates.dueDate !== undefined) invoice.dueDate = toDate(updates.dueDate);
+    if (updates.paymentTerms !== undefined) invoice.paymentTerms = normalizeString(updates.paymentTerms);
+    if (updates.invoiceNumber !== undefined) invoice.invoiceNumber = normalizeString(updates.invoiceNumber);
+    if (updates.accessorials !== undefined) invoice.accessorials = toNumber(updates.accessorials);
+    if (updates.fuelSurcharge !== undefined) invoice.fuelSurcharge = toNumber(updates.fuelSurcharge);
+    if (updates.contractRate !== undefined) invoice.contractRate = toNumber(updates.contractRate);
+
+    invoice.updatedAt = new Date();
+    await invoice.save();
+
+    res.json({ invoice });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

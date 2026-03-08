@@ -11,21 +11,28 @@ const customerSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    nameLower: {
+      type: String
+    },
     email: {
-      type: String,
-      required: true,
-      unique: true
+      type: String
+    },
+    emailLower: {
+      type: String
     },
     phone: {
       type: String
     },
-    address: {
+    company: {
+      type: String
+    },
+    billingAddress: {
       type: String
     },
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active"
+      enum: ['Active', 'Inactive'],
+      default: 'Active'
     }
   },
   { timestamps: true }

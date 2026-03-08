@@ -1,0 +1,12 @@
+[
+  {"description": "Review `package.json` to understand dependencies, and scripts for running, testing, and debugging the application.", "status": "completed"},
+  {"description": "Set up the local environment, including the creation of a `.env` file based on `.env.example`.", "status": "completed"},
+  {"description": "Install all project dependencies using `npm install`.", "status": "completed"},
+  {"description": "Run the application using the appropriate `npm` script.", "status": "completed"},
+  {"description": "Analyze the database schema and data to ensure consistency and correctness.", "status": "completed"},
+  {"description": "Test all API endpoints for proper functionality and error handling.", "status": "in_progress"},
+  {"description": "Review and test the user authentication flow.", "status": "pending"},
+  {"description": "Examine and validate the functionality of the main application features (Invoices, Customers, etc.).", "status": "pending"},
+  {"description": "Review the frontend components and their interaction with the backend.", "status": "pending"},
+  {"description": "Analyze the deployment configuration and ensure it's set up correctly.", "status": "pending"}
+]

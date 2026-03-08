@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const carrierSchema = new mongoose.Schema(
+const customerSchema = new mongoose.Schema(
   {
     id: {
       type: String,
@@ -14,25 +14,19 @@ const carrierSchema = new mongoose.Schema(
     nameLower: {
       type: String
     },
-    mcNumber: {
-      type: String
-    },
-    mcNumberNormalized: {
-      type: String
-    },
     email: {
+      type: String
+    },
+    emailLower: {
       type: String
     },
     phone: {
       type: String
     },
-    paymentTerms: {
+    company: {
       type: String
     },
-    insuranceExpiry: {
-      type: Date
-    },
-    taxId: {
+    billingAddress: {
       type: String
     },
     status: {
@@ -44,4 +38,4 @@ const carrierSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Carrier", carrierSchema);
+export default mongoose.model("Customer", customerSchema);
