@@ -2,6 +2,7 @@ import express from "express";
 
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import User from "../models/Users.js";
 import { loginValidators, validate } from "../middleware/validators.js";
 
@@ -66,7 +67,20 @@ router.post("/login", loginValidators, validate, async (req, res) => {
         return res.status(401).json({ success: false, message: "Incorrect password. Please try again or reset your password." });
       }
 
-      res.json({ success: true, message: "Login successful", user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
+      const rawJwtSecret = process.env.JWT_SECRET;
+      const jwtSecret = typeof rawJwtSecret === 'string' ? rawJwtSecret.trim() : '';
+      if (!jwtSecret || jwtSecret.length < 32) {
+        console.error('[LOGIN] Invalid JWT_SECRET configuration: must be at least 32 non-whitespace characters');
+        return res.status(500).json({ success: false, message: "Server configuration error. Please contact support." });
+      }
+      const expiresIn = process.env.JWT_EXPIRES_IN || '1h';
+      const token = jwt.sign(
+        { id: user.id, email: user.email, roles: user.roles },
+        jwtSecret,
+        { expiresIn }
+      );
+
+      res.json({ success: true, message: "Login successful", token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
     console.error('[LOGIN DEBUG] Error during login:', error);
       res.status(500).json({ success: false, message: error.message });

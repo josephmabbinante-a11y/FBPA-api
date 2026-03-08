@@ -26,6 +26,13 @@
     </div>
   </div>
   <script>
+    (function() {
+      const token = localStorage.getItem('jwt');
+      if (!token) {
+        window.location.href = '/login.html';
+      }
+    })();
+
     async function loadDashboard() {
       const res = await fetch('/api/dashboard');
       if (!res.ok) {
