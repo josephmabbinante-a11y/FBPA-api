@@ -1,47 +1,4 @@
 import mongoose from 'mongoose';
-import bcryptjs from 'bcryptjs';
-
-// User Schema
-const UserSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
-  username: { type: String, unique: true, sparse: true },
-  email: { type: String, required: true, unique: true },
-  emailLower: { type: String },
-  password: { type: String, required: true },
-  name: { type: String },
-  nameLower: { type: String },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
-
-// Pre-save hook for password hashing and auto-populating lowercase fields
-UserSchema.pre('save', async function (next) {
-  // Hash password if modified
-  if (this.isModified('password')) {
-    this.password = await bcryptjs.hash(this.password, 10);
-  }
-  
-  // Auto-populate or update lowercase fields when source fields change
-  if (this.email && (this.isModified('email') || !this.emailLower)) {
-    this.emailLower = this.email.toLowerCase();
-  }
-  if (this.name && (this.isModified('name') || !this.nameLower)) {
-    this.nameLower = this.name.toLowerCase();
-  }
-  
-  next();
-});
-
-// Method to compare passwords
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcryptjs.compare(candidatePassword, this.password);
-};
-
-// Indexes for User
-UserSchema.index({ emailLower: 1 });
-UserSchema.index({ nameLower: 1 });
 
 // Customer Schema
 const CustomerSchema = new mongoose.Schema({
@@ -157,7 +114,6 @@ ExceptionSchema.index({ invoiceId: 1 });
 ExceptionSchema.index({ status: 1 });
 
 // Export models
-export const User = mongoose.model('User', UserSchema);
 export const Customer = mongoose.model('Customer', CustomerSchema);
 export const Carrier = mongoose.model('Carrier', CarrierSchema);
 export const Invoice = mongoose.model('Invoice', InvoiceSchema);
