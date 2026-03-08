@@ -116,8 +116,9 @@ app.use((req, res, next) => {
 });
 
 
-// Add JSON parse error handler for body-parser
+console.log('[MIDDLEWARE] Before express.json()');
 app.use(express.json());
+console.log('[MIDDLEWARE] After express.json()');
 app.use(express.urlencoded({ extended: true }));
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
@@ -133,7 +134,7 @@ app.use((err, req, res, next) => {
 });
 
 // API routes
-app.use('/auth', authRouter);
+// ...existing code...
 app.use('/api/auth', authRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/carriers', carriersRouter);
