@@ -1,9 +1,6 @@
 import mongoose from "mongoose";
 
 const carrierSchema = new mongoose.Schema(
-import mongoose from "mongoose";
-
-const carrierSchema = new mongoose.Schema(
   {
     id: {
       type: String,
@@ -15,7 +12,6 @@ const carrierSchema = new mongoose.Schema(
       required: true
     },
     nameLower: {
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
       type: String
     },
     mcNumber: {
@@ -43,7 +39,8 @@ const carrierSchema = new mongoose.Schema(
       type: String,
       enum: ['Active', 'Inactive'],
       default: 'Active'
-    }
+    },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { timestamps: true }
 );

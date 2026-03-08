@@ -37,7 +37,7 @@ export async function registerUserAndOrganization(req, res) {
     res.status(201).json({ user: { id: userDoc._id, email: userDoc.email }, organization: { id: orgDoc._id, name: orgDoc.name } });
   } catch (error) {
     await session.abortTransaction();
-    console.error('[DEBUG] Registration Error:', error);
+    console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed', details: error.message });
   } finally {
     session.endSession();

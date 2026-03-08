@@ -8,8 +8,6 @@ const vehicleSchema = new mongoose.Schema({
   year: { type: Number },
   licensePlate: { type: String },
   status: { type: String, enum: ["active", "inactive"], default: "active" },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 export default mongoose.model("Vehicle", vehicleSchema);

@@ -1,7 +1,4 @@
-// ...existing code...
 import dotenv from 'dotenv';
-dotenv.config();
-const PORT = process.env.PORT || 4000;
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -19,6 +16,14 @@ import uploadsRouter from './uploads.js';
 import invoiceImagesRouter from './invoiceImages.js';
 import ediRouter from './edi.js';
 import authRouter from './auth.js';
+import locationsRouter from './locations.js';
+import tripsRouter from './trips.js';
+import driversRouter from './drivers.js';
+import vehiclesRouter from './vehicles.js';
+import loadsRouter from './loads.js';
+
+dotenv.config();
+const PORT = process.env.PORT || 4000;
 
 // Load environment variables from .env (already loaded above)
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
@@ -148,11 +153,6 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/invoice-images', invoiceImagesRouter);
 app.use('/api/edi', ediRouter);
-import locationsRouter from './locations.js';
-import tripsRouter from './trips.js';
-import driversRouter from './drivers.js';
-import vehiclesRouter from './vehicles.js';
-import loadsRouter from './loads.js';
 app.use('/api/locations', locationsRouter);
 app.use('/api/trips', tripsRouter);
 app.use('/api/drivers', driversRouter);
