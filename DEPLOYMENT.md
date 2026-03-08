@@ -1,303 +1,289 @@
-# Deployment Guide
+# FBPA-API Deployment Guide
 
-## Environment Variables Setup
+## Overview
 
-### Required Variables
+This guide covers deployment, restart, and lifecycle management for the FBPA-API server.
 
-#### `MONGODB_URI`
-Your MongoDB Atlas connection string.
+## Server Lifecycle Management
 
-**How to get it:**
-1. Go to [MongoDB Atlas](https://cloud.mongodb.com/)
-2. Navigate to your cluster
-3. Click "Connect" → "Connect your application"
-4. Copy the connection string
-5. Replace `<username>` and `<password>` with your database user credentials
-6. Add your database name (e.g., `/fbpa`)
+### Starting the Server
 
-**Example:**
-```
-mongodb+srv://myuser:mypassword@cluster0.abc123.mongodb.net/fbpa-db?retryWrites=true&w=majority
+**Production:**
+```bash
+npm start
 ```
 
-**Security Notes:**
-- ⚠️ NEVER commit this to git
-- ✅ Store in environment variables only
-- 🔒 Rotate credentials if accidentally exposed
-
-### Optional Variables
-
-#### `PORT`
-Server port (default: 4000)
-
-#### `NODE_ENV`
-Environment mode: `development` | `production` | `test`
-
-#### `CORS_ORIGIN`
-Comma-separated list of allowed frontend origins.
-
-**Example:**
-```
-CORS_ORIGIN=https://fbpa-ui.onrender.com,https://www.yourdomain.com
+**Development (with auto-restart):**
+```bash
+npm run dev
 ```
 
-#### `SERVE_STATIC`
-Whether to serve static files from the server (default: false)
+### Stopping the Server
 
-Set to `true` if you want this API server to also serve your frontend build files.
+The server supports graceful shutdown via system signals (SIGTERM, SIGINT).
 
-#### Email/SMTP Configuration (Optional)
+**What happens during graceful shutdown:**
+1. Server stops accepting new connections
+2. Existing connections are allowed to complete
+3. MongoDB connections are properly closed
+4. Server logs shutdown status
+5. Process exits cleanly
 
-If you want to enable email notifications for invoice updates and messages:
+### Restarting the Server
 
-**`SMTP_HOST`** - Your SMTP server hostname
-```
-SMTP_HOST=smtp.gmail.com
-```
+**On Render:**
+- Manual restart: Use the "Manual Deploy" button in Render dashboard
+- Or use the "Restart" button in the service settings
+- Automatic restart: Push changes to the main branch
 
-**`SMTP_USER`** - Your email address or SMTP username
-```
-SMTP_USER=your-email@gmail.com
-```
+**For local development:**
+- Use `npm run dev` with nodemon for automatic restart on file changes
+- Or manually stop (Ctrl+C) and restart with `npm start`
 
-**`SMTP_PASS`** - Your SMTP password or app-specific password
-```
-SMTP_PASS=your-app-password
-```
+### Health Checks
 
-**`SMTP_FROM`** - The "from" address for sent emails
-```
-SMTP_FROM=noreply@audit-iq.com
-```
-
-**Note:** For Gmail, you need to use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password.
-
----
-
-## Deployment Platforms
-
-### Railway Deployment
-
-1. **Create New Project:**
-   - Visit https://railway.app/dashboard
-   - Click "New Project" → "Deploy from GitHub repo"
-   - Select `josephmabbinante-a11y/FBPA-api`
-
-2. **Add Environment Variables:**
-   - Go to project → "Variables" tab
-   - Add each variable:
-     ```
-     MONGODB_URI = <your-mongodb-connection-string>
-     NODE_ENV = production
-     CORS_ORIGIN = <your-frontend-url>
-     ```
-
-3. **Deploy:**
-   - Railway auto-deploys on git push to main
-   - Check logs to verify MongoDB connection
-
-4. **Get API URL:**
-   - Go to "Settings" → "Domains"
-   - Copy the Railway-provided URL (e.g., `https://fbpa-api.up.railway.app`)
-
----
-
-### Render Deployment
-
-1. **Create Web Service:**
-   - Visit https://dashboard.render.com/
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repository
-
-2. **Configure Service:**
-   - **Name:** `fbpa-api`
-   - **Environment:** `Node`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - **Plan:** Free or paid tier
-
-3. **Environment Variables:**
-   - Scroll to "Environment" section
-   - Click "Add Environment Variable"
-   - Add:
-     ```
-     MONGODB_URI = <your-mongodb-connection-string>
-     NODE_ENV = production
-     CORS_ORIGIN = <your-frontend-url>
-     ```
-
-4. **Deploy:**
-   - Click "Create Web Service"
-   - Monitor deployment logs
-   - Verify MongoDB connection in logs: `[mongodb] Connected`
-
----
-
-### Vercel Deployment (Serverless)
-
-**Note:** Vercel is optimized for serverless functions. For a persistent Express server, Railway or Render is recommended.
-
-If using Vercel:
-
-1. **Install Vercel CLI:**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Login:**
-   ```bash
-   vercel login
-   ```
-
-3. **Add Environment Variables:**
-   ```bash
-   vercel env add MONGODB_URI
-   # Paste your connection string when prompted
-   ```
-
-4. **Deploy:**
-   ```bash
-   vercel --prod
-   ```
-
----
-
-## MongoDB Atlas Setup
-
-### Create Database User
-
-1. **Go to MongoDB Atlas:**
-   - Visit https://cloud.mongodb.com/
-   - Select your project
-
-2. **Create User:**
-   - Click "Database Access" (left sidebar)
-   - Click "+ ADD NEW DATABASE USER"
-   - **Authentication Method:** Password
-   - **Username:** `fbpa_api_user` (or your choice)
-   - **Password:** Generate a secure password (save it!)
-   - **Database User Privileges:** 
-     - Select "Built-in Role"
-     - Choose "Read and write to any database"
-   - Click "Add User"
-
-### Whitelist IP Addresses
-
-1. **Network Access:**
-   - Click "Network Access" (left sidebar)
-   - Click "+ ADD IP ADDRESS"
-
-2. **For Development:**
-   - Click "ADD CURRENT IP ADDRESS" (your local machine)
-
-3. **For Production (Railway/Render):**
-   - **Option 1:** Add `0.0.0.0/0` (allow from anywhere - less secure but simpler)
-   - **Option 2:** Add specific IPs from your hosting platform
-
-4. **Click "Confirm"**
-
----
-
-## Testing Your Deployment
-
-### Check Health Endpoint
+Check server health status:
 
 ```bash
-curl https://your-api-url.railway.app/api/health
-```
+# Using npm script
+npm run health
 
-**Expected response:**
-```json
+# Or directly with curl
+curl http://localhost:4000/api/health
+
+# Expected response:
 {
   "ok": true,
   "dbStatus": "connected",
   "uptimeSec": 123,
-  "timestamp": "2026-02-12T..."
+  "timestamp": "2026-02-12T15:00:00.000Z"
 }
 ```
 
-### Test Login Endpoint
+## Render Deployment
 
-```bash
-curl -X POST https://your-api-url.railway.app/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
-```
+### Initial Setup
 
----
+1. **Connect Repository**
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository: `josephmabbinante-a11y/FBPA-api`
+   - Select branch: `main`
+
+2. **Configure Service**
+   - Render auto-detects `render.yaml`
+   - Service name: `fbpa-api`
+   - Build command: `npm install`
+   - Start command: `node index.js`
+
+3. **Set Environment Variables**
+
+   **Required:**
+   - `MONGODB_URI` - Your MongoDB connection string
+     ```
+     mongodb+srv://username:password@cluster.mongodb.net/dbname
+     ```
+
+   **Auto-Generated:**
+   - `PORT` - Set by Render
+   - `JWT_SECRET` - Auto-generated for authentication
+
+   **Optional:**
+   - `CORS_ORIGIN` - Comma-separated list of allowed origins
+   - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` - For email features
+   - `NODE_ENV` - Set to `production`
+   - `SERVE_STATIC` - Set to `false` for API-only mode
+
+4. **Deploy**
+   - Click "Create Web Service"
+   - Render will build and deploy automatically
+   - Monitor logs for successful deployment
+
+### Redeployment
+
+**Automatic (Recommended):**
+1. Push changes to the `main` branch
+2. Render automatically detects changes
+3. Triggers new build and deployment
+4. Zero-downtime deployment with health checks
+
+**Manual:**
+1. Go to Render Dashboard
+2. Select your `fbpa-api` service
+3. Click "Manual Deploy" → "Deploy latest commit"
+
+### Health Checks
+
+Render automatically monitors the health check endpoint:
+- **Path:** `/api/health`
+- **Expected:** HTTP 200 with `{"ok": true, ...}`
+- **Frequency:** Every 30 seconds
+- **Timeout:** 5 seconds
+
+If health checks fail:
+1. Render will attempt to restart the service
+2. Check logs in Render Dashboard
+3. Verify environment variables are set
+4. Ensure MongoDB connection is working
+
+### Rolling Deployments
+
+Render uses zero-downtime deployments:
+1. New instance starts and passes health checks
+2. Traffic gradually shifts to new instance
+3. Old instance drains existing connections
+4. Old instance shuts down gracefully
 
 ## Troubleshooting
 
-### ❌ "MONGODB_URI not set, running without database"
+### Server Won't Start
 
-**Solution:** Environment variable is missing or empty.
-- Verify variable is set in deployment platform
-- Check for typos in variable name
-- Redeploy after adding variable
+1. **Check Environment Variables**
+   - Verify `MONGODB_URI` is set correctly
+   - Ensure no placeholder brackets in connection string
 
-### ❌ "MONGODB_URI contains placeholder brackets"
+2. **Check Logs**
+   - On Render: View logs in dashboard
+   - Locally: Check console output
 
-**Solution:** You haven't replaced `<username>` and `<password>` in connection string.
-- Get credentials from MongoDB Atlas
-- Replace placeholders with actual values
+3. **Common Issues:**
+   - Missing `MONGODB_URI`
+   - Invalid MongoDB connection string
+   - Port already in use
+   - Missing dependencies
 
-### ❌ "MongoNetworkError" or "connection timeout"
+### Database Connection Fails
 
-**Solution:** IP address not whitelisted in MongoDB Atlas.
-- Go to Network Access in Atlas
-- Add `0.0.0.0/0` or your deployment platform's IPs
-- Wait 1-2 minutes for changes to propagate
+1. **Verify Connection String**
+   - No placeholder text in URI
+   - Correct database name
+   - Network access allowed (MongoDB Atlas)
 
-### ❌ "Authentication failed"
+2. **Check MongoDB Atlas**
+   - IP whitelist includes `0.0.0.0/0` or Render IPs
+   - Database user has correct permissions
+   - Cluster is running
 
-**Solution:** Wrong username/password in connection string.
-- Verify credentials in MongoDB Atlas → Database Access
-- Regenerate password if needed
-- Update `MONGODB_URI` with new credentials
-- **URL-encode** special characters in password
+## Monitoring
 
----
+### Key Metrics to Monitor
 
-## Security Checklist
+1. **Health Status**
+   - Endpoint: `/api/health`
+   - Should return 200 with `ok: true`
 
-- [ ] `.env` file is in `.gitignore`
-- [ ] Never commit `.env` or credentials to git
-- [ ] Rotate credentials if accidentally exposed
-- [ ] Use environment variables in deployment platforms
-- [ ] Enable MongoDB Atlas IP whitelist
-- [ ] Use HTTPS in production (automatic on Railway/Render)
-- [ ] Set `NODE_ENV=production` in production
+2. **Database Connection**
+   - `dbStatus` should be "connected"
+   - Monitor connection errors in logs
 
----
+3. **Response Times**
+   - Health check should respond < 100ms
+   - API endpoints should respond < 1s
 
-## Frontend Configuration
+4. **Error Rates**
+   - Monitor 5xx errors in logs
+   - Track uncaught exceptions
 
-Once your API is deployed, configure your frontend (`fbpa-ui`):
+### Logging
 
-### Add Environment Variable
+All server events are logged:
+- Startup/shutdown events
+- Database connections/disconnections
+- HTTP requests (in dev mode)
+- Errors and exceptions
 
-**Local (.env.local):**
+**Access logs on Render:**
+1. Go to service dashboard
+2. Click "Logs" tab
+3. Filter by time range or search terms
+
+## Best Practices
+
+1. **Always Use Graceful Shutdown**
+   - Prevents data corruption
+   - Allows connections to complete
+   - Ensures clean database closure
+
+2. **Monitor Health Checks**
+   - Set up alerts for failed health checks
+   - Investigate failures immediately
+
+3. **Environment Variables**
+   - Never commit secrets to repository
+   - Use Render's environment variable management
+   - Rotate secrets regularly
+
+4. **Database Connections**
+   - Always close connections on shutdown
+   - Handle connection errors gracefully
+   - Use connection pooling
+
+5. **Deployment Strategy**
+   - Test changes locally first
+   - Use feature branches for development
+   - Merge to main only after testing
+   - Monitor deployments in Render dashboard
+
+## Quick Reference
+
+```bash
+# Start server
+npm start
+
+# Start with auto-restart (dev)
+npm run dev
+
+# Check health
+npm run health
+
+# Verify configuration
+node --check index.js
 ```
-VITE_API_URL=http://localhost:4000
-```
 
-**Production (Render/Vercel):**
-```
-VITE_API_URL=https://your-api-url.railway.app
-```
+## Emergency Procedures
 
-Your existing `src/api/client.js` already reads this variable:
-```javascript
-const API_URL = import.meta.env.VITE_API_URL;
-```
+### Service is Down
 
-✅ No code changes needed in frontend!
+1. Check Render Dashboard status
+2. Review recent deployments
+3. Check health endpoint
+4. Verify environment variables
+5. Manual restart via Render Dashboard
 
----
+### Database Connection Lost
 
-## Need Help?
+1. Check MongoDB Atlas status
+2. Verify connection string
+3. Check IP whitelist
+4. Restart service to reconnect
 
-- **MongoDB Atlas Issues:** https://docs.atlas.mongodb.com/
-- **Railway Support:** https://docs.railway.app/
-- **Render Support:** https://render.com/docs
-- **Environment Variables:** See `.env.example` in this repo
+### Memory/CPU Issues
+
+1. Check Render metrics
+2. Review resource usage patterns
+3. Consider upgrading instance size
+4. Optimize database queries
+
+## Updates and Maintenance
+
+### Updating Dependencies
+
+1. Update `package.json`
+2. Test locally
+3. Commit changes
+4. Push to trigger deployment
+
+### Database Migrations
+
+1. Create migration script
+2. Test on staging database
+3. Schedule maintenance window
+4. Run migration
+5. Verify data integrity
+
+### Security Updates
+
+1. Regular dependency audits: `npm audit`
+2. Update vulnerable packages
+3. Test thoroughly
+4. Deploy with monitoring

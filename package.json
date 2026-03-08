@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "health": "curl -s http://localhost:${PORT:-4000}/api/health | jq . || curl -s http://localhost:${PORT:-4000}/api/health"
     "start": "node index.js",
     "dev": "node index.js",
     "test:backend-flow": "node backend-flow-test.js"
@@ -40,6 +43,11 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.2.0",
+    "multer": "^2.0.2",
+    "csv-parse": "^5.6.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.1",
     "multer": "^2.0.2",
