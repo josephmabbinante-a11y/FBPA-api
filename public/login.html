@@ -55,8 +55,9 @@
         body: JSON.stringify({ email, password })
       });
       const msg = document.getElementById('message');
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+      console.log('Login response:', data);
+      if (res.ok && data.success) {
         msg.textContent = 'Login successful! Redirecting...';
         msg.style.color = 'green';
         if (data.token) {
@@ -66,8 +67,7 @@
           window.location.href = '/dashboard';
         }, 1200);
       } else {
-        const data = await res.json();
-        msg.textContent = data.error || 'Invalid email or password';
+        msg.textContent = data.message || data.error || 'Invalid email or password';
         msg.style.color = '#ff4d4f';
       }
     });
