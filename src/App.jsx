@@ -1,31 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import LoginForm from './components/LoginForm';
-import RegisterForm from './components/RegisterForm';
-// ...import other pages/components as needed
-
-function PrivateRoute({ children }) {
-  const token = localStorage.getItem('accessToken');
-  return token ? children : <Navigate to="/login" />;
-}
+import './index.css';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import FleetDashboard from './components/FleetDashboard.jsx';
+// Placeholder components for Login and Register
+const Login = () => <div>Login Page</div>;
+const Register = () => <div>Register Page</div>;
 
 function App() {
   return (
     <Router>
+      <nav style={{ marginBottom: '1rem' }}>
+        <Link to="/" style={{ marginRight: '1rem' }}>Dashboard</Link>
+        <Link to="/login" style={{ marginRight: '1rem' }}>Login</Link>
+        <Link to="/register">Register</Link>
+      </nav>
       <Routes>
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        {/* Add other routes here */}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<FleetDashboard />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </Router>
   );
