@@ -8,8 +8,6 @@ const locationSchema = new mongoose.Schema({
   state: { type: String },
   zip: { type: String },
   country: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 export default mongoose.model("Location", locationSchema);

@@ -33,9 +33,9 @@ const customerSchema = new mongoose.Schema(
       type: String,
       enum: ['Active', 'Inactive'],
       default: 'Active'
-    }
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
     },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  },
   { timestamps: true }
 );
 

@@ -14,8 +14,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tms';
 
+// --- CORS Configuration ---
+const allowedOrigins = (process.env.CORS_ALLOWLIST || '').split(',').map(origin => origin.trim()).filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // In non-production environments, allow requests with no origin (e.g., curl, local tools)
+    if (!origin) {
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+};
+
 // --- Global Middleware ---
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // --- Tenant Guard Middleware Example ---
@@ -47,7 +68,7 @@ app.get('*', (req, res) => {
 });
 
 // --- Database & Start ---
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('MongoDB connected');
     app.listen(PORT, () => {

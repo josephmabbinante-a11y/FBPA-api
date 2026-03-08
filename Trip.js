@@ -9,8 +9,6 @@ const tripSchema = new mongoose.Schema({
   startDate: { type: Date },
   endDate: { type: Date },
   status: { type: String, enum: ["planned", "in-progress", "completed", "cancelled"], default: "planned" },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 export default mongoose.model("Trip", tripSchema);

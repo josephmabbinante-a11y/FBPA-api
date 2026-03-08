@@ -16,7 +16,6 @@ const Uploads = lazy(() => import("./pages/Uploads"));
 const Reports = lazy(() => import("./pages/Reports"));
 const ReportDetail = lazy(() => import("./pages/ReportDetail"));
 const CarriersPerformance = lazy(() => import("./pages/CarriersPerformance"));
-const Invoices = lazy(() => import("./pages/Invoices"));
 const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
 const Exceptions = lazy(() => import("./pages/Exceptions"));
 const ExceptionDrilldown = lazy(() => import("./pages/ExceptionDrilldown"));
@@ -28,15 +27,13 @@ const SystemStatus = lazy(() => import("./pages/SystemStatus"));
 const CombinedPage = lazy(() => import("./pages/CombinedPage"));
 // Register page is now merged into Login
 
-import ExceptionsUploads from "./pages/ExceptionsUploads";
-
 const appRouteDefs = [
   { path: "/", element: <Dashboard /> },
   { path: "/dashboard", element: <Dashboard /> },
   { path: "/invoices", element: <CombinedPage /> },
   { path: "/invoices/:id", element: <InvoiceDetail /> },
-  { path: "/exceptions", element: <ExceptionsUploads /> },
-  { path: "/uploads", element: <ExceptionsUploads /> },
+  { path: "/exceptions", element: <Exceptions /> },
+  { path: "/uploads", element: <Uploads /> },
   { path: "/exceptions/:id", element: <ExceptionDrilldown /> },
   { path: "/reports", element: <Reports /> },
   { path: "/reports/:reportId", element: <ReportDetail /> },

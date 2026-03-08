@@ -5,20 +5,22 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from '../models/Users.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://FBPADB:Opscale2020%24@cluster0.fvycshx.mongodb.net/?appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('Environment variable MONGODB_URI is not set. Please set it before running this script.');
+  process.exit(1);
+}
+
 async function addUser(email, password, name = '') {
   try {
-    console.log('[DEBUG] Connecting to MongoDB:', MONGODB_URI);
     await mongoose.connect(MONGODB_URI);
-    console.log('[DEBUG] Connected to MongoDB');
     const existing = await User.findOne({ email: email.toLowerCase() });
-    console.log('[DEBUG] Existing user lookup result:', existing);
     if (existing) {
       console.log('User already exists:', email);
       process.exit(1);
     }
     const passwordHash = await bcrypt.hash(password, 10);
-    console.log('[DEBUG] Password hashed');
     const user = new User({
       email: email.toLowerCase(),
       passwordHash,
