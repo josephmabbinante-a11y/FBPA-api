@@ -62,7 +62,7 @@
           msg.textContent = 'Login successful! Redirecting...';
           msg.style.color = 'green';
           if (data.token) {
-            localStorage.setItem('jwt', data.token);
+            localStorage.setItem('accessToken', data.token);
           }
           setTimeout(function() {
             window.location.href = '/dashboard.html';
