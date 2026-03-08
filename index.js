@@ -115,6 +115,8 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static files from public/ unconditionally (before body parsers and API routes)
+app.use(express.static(path.join(__dirname, 'public')));
 
 console.log('[MIDDLEWARE] Before express.json()');
 app.use(express.json());
@@ -157,6 +159,19 @@ app.get('/api/health', (req, res) => {
     uptimeSec: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
   });
+});
+
+// Root route for friendly message
+app.get('/', (req, res) => {
+  res.send('API server is running!');
+});
+
+app.use((err, req, res, next) => {
+  if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
+    return res.status(403).json({ error: err.message });
+  }
+
+  return next(err);
 });
 
 if (process.env.SERVE_STATIC === 'true') {
@@ -213,20 +228,4 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
   // Exit immediately with error code for unhandled rejections
   process.exit(1);
-});
-// Root route for friendly message
-app.get('/', (req, res) => {
-  res.send('API server is running!');
-});
-
-app.use((err, req, res, next) => {
-  if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
-    return res.status(403).json({ error: err.message });
-  }
-
-  return next(err);
-});
-
-app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${PORT}`);
 });
