@@ -161,6 +161,19 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root route for friendly message
+app.get('/', (req, res) => {
+  res.send('API server is running!');
+});
+
+app.use((err, req, res, next) => {
+  if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
+    return res.status(403).json({ error: err.message });
+  }
+
+  return next(err);
+});
+
 if (process.env.SERVE_STATIC === 'true') {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
@@ -215,16 +228,4 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
   // Exit immediately with error code for unhandled rejections
   process.exit(1);
-});
-// Root route for friendly message
-app.get('/', (req, res) => {
-  res.send('API server is running!');
-});
-
-app.use((err, req, res, next) => {
-  if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
-    return res.status(403).json({ error: err.message });
-  }
-
-  return next(err);
 });
