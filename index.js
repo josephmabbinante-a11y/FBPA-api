@@ -87,6 +87,10 @@ if (MONGODB_URI && !hasUriPlaceholders) {
   mongoose.connection.on('disconnected', () => {
     console.warn('[mongodb] Disconnected');
   });
+
+  mongoose.connection.on('error', (err) => {
+    console.error('[mongodb] Connection error event:', err.message);
+  });
 } else if (hasUriPlaceholders) {
   console.warn('[mongodb] MONGODB_URI contains placeholder brackets. Update .env with real credentials.');
 } else {
@@ -237,8 +241,8 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
+// Log unhandled rejections but do NOT exit — transient MongoDB reconnection
+// failures and similar async errors must not crash the running server.
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-  // Exit immediately with error code for unhandled rejections
-  process.exit(1);
 });
