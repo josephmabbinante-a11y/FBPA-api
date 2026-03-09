@@ -12,6 +12,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import customersRouter from './customers.js';
 import carriersRouter from './carriers.js';
@@ -42,7 +43,7 @@ const app = express();
 // ...existing code...
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.resolve(__dirname, '../dist');
+const distPath = path.resolve(__dirname, 'dist');
 
 // Allow only Vercel frontend and custom domains for CORS
 const defaultAllowedOrigins = [
@@ -170,9 +171,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Root route for friendly message
+// Root route redirects to login page
 app.get('/', (req, res) => {
-  res.send('API server is running!');
+  res.redirect('/login.html');
 });
 
 app.use((err, req, res, next) => {
@@ -183,7 +184,10 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
-if (process.env.SERVE_STATIC === 'true') {
+// Serve the React SPA from dist/ when it has been built.
+// This allows client-side routes like /login and /dashboard to work correctly.
+const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
+if (distIndexExists) {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
