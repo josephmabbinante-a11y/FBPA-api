@@ -194,7 +194,7 @@ const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 if (distIndexExists) {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    if (req.path.startsWith('/api')) {
       next();
       return;
     }
