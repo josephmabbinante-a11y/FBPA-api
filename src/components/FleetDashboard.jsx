@@ -68,12 +68,20 @@ export default function FleetDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/dashboard`)
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    fetch(`${API_BASE}/api/dashboard`, { headers })
       .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem('accessToken');
+          window.location.href = '/login';
+          return null;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         return res.json();
       })
       .then((json) => {
+        if (!json) return;
         setData(json);
         setLoading(false);
       })

@@ -38,6 +38,11 @@
       const res = await fetch('/api/dashboard', {
         headers: token ? { 'Authorization': 'Bearer ' + token } : {}
       });
+      if (res.status === 401) {
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login.html';
+        return;
+      }
       if (!res.ok) {
         document.getElementById('summary').textContent = 'Failed to load dashboard.';
         return;
