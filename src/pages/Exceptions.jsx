@@ -1,17 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Layout from '../components/Layout.jsx';
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
-function authHeaders() {
-  const token = localStorage.getItem('accessToken');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
+import { API_BASE, authHeaders, handle401 } from '../lib/api.js';
 
 const STATUS_COLORS = {
   Open: { bg: 'rgba(245,158,11,0.15)', color: 'var(--warning)' },
   Resolved: { bg: 'rgba(34,197,94,0.15)', color: 'var(--success)' },
-  'In Review': { bg: 'rgba(59,130,246,0.15)', color: 'var(--accent)' },
+  Closed: { bg: 'rgba(59,130,246,0.15)', color: 'var(--accent)' },
 };
 
 const SEVERITY_COLORS = {
@@ -47,13 +41,10 @@ export default function Exceptions() {
 
   const load = useCallback(() => {
     setLoading(true);
+    setError(null);
     fetch(`${API_BASE}/api/exceptions`, { headers: authHeaders() })
       .then((res) => {
-        if (res.status === 401) {
-          localStorage.removeItem('accessToken');
-          window.location.href = '/login';
-          return null;
-        }
+        if (handle401(res)) return null;
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
@@ -79,7 +70,9 @@ export default function Exceptions() {
         headers: { ...authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
+      if (handle401(res)) return;
       if (res.ok) {
+        setError(null);
         setExceptions((prev) =>
           prev.map((exc) => (exc.id === id ? { ...exc, status: newStatus } : exc))
         );
@@ -165,8 +158,8 @@ export default function Exceptions() {
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={selectStyle}>
             <option value="">All Statuses</option>
             <option value="Open">Open</option>
-            <option value="In Review">In Review</option>
             <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
           </select>
           <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} style={selectStyle}>
             <option value="">All Severities</option>
@@ -228,10 +221,10 @@ export default function Exceptions() {
                           <Badge value={exc.status} colorMap={STATUS_COLORS} />
                         </td>
                         <td style={{ padding: '0.75rem 1rem' }}>
-                          {exc.status !== 'Resolved' && (
+                          {exc.status === 'Open' && (
                             <button
                               disabled={updating === exc.id}
-                              onClick={() => updateStatus(exc.id, exc.status === 'Open' ? 'In Review' : 'Resolved')}
+                              onClick={() => updateStatus(exc.id, 'Resolved')}
                               style={{
                                 padding: '0.3rem 0.7rem',
                                 background: 'transparent',
@@ -244,7 +237,7 @@ export default function Exceptions() {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {exc.status === 'Open' ? 'Mark In Review' : 'Mark Resolved'}
+                              Mark Resolved
                             </button>
                           )}
                         </td>

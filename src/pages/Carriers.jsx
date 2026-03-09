@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout.jsx';
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
-function authHeaders() {
-  const token = localStorage.getItem('accessToken');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
+import { API_BASE, authHeaders, handle401 } from '../lib/api.js';
 
 function StatusBadge({ status }) {
   const active = status === 'Active';
@@ -33,11 +27,7 @@ export default function Carriers() {
   useEffect(() => {
     fetch(`${API_BASE}/api/carriers`, { headers: authHeaders() })
       .then((res) => {
-        if (res.status === 401) {
-          localStorage.removeItem('accessToken');
-          window.location.href = '/login';
-          return null;
-        }
+        if (handle401(res)) return null;
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })

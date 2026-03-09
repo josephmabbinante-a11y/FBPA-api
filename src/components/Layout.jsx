@@ -76,6 +76,8 @@ export default function Layout({ children }) {
             <NavLink
               key={to}
               to={to}
+              aria-label={label}
+              title={label}
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
@@ -101,6 +103,8 @@ export default function Layout({ children }) {
         <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
           <button
             onClick={handleLogout}
+            aria-label="Log out"
+            title="Log out"
             style={{
               width: '100%',
               padding: collapsed ? '0.5rem' : '0.5rem 0.75rem',
