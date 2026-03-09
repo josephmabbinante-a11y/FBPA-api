@@ -83,7 +83,11 @@ export default function Exceptions() {
         setExceptions((prev) =>
           prev.map((exc) => (exc.id === id ? { ...exc, status: newStatus } : exc))
         );
+      } else {
+        setError(`Failed to update status (HTTP ${res.status})`);
       }
+    } catch {
+      setError('Network error updating exception status');
     } finally {
       setUpdating(null);
     }
