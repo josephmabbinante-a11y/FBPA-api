@@ -1,5 +1,6 @@
 import express from 'express';
-import { Exception, Invoice } from './models.js';
+import Exception from '../models/Exception.js';
+import Invoice from '../models/Invoice.js';
 
 const router = express.Router();
 
