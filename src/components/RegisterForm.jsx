@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://mongodb-production-744f.up.railway.app';
+const rawApiBase = (import.meta.env.VITE_API_URL || '').trim();
+const API_BASE = rawApiBase.replace(/\/+$/, '');
 
 export default function RegisterForm() {
   const [name, setName] = useState('');

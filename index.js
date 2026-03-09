@@ -12,6 +12,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import customersRouter from './customers.js';
 import carriersRouter from './carriers.js';
@@ -42,7 +43,7 @@ const app = express();
 // ...existing code...
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.resolve(__dirname, '../dist');
+const distPath = path.resolve(__dirname, 'dist');
 
 // Allow only Vercel frontend and custom domains for CORS
 const defaultAllowedOrigins = [
@@ -85,6 +86,10 @@ if (MONGODB_URI && !hasUriPlaceholders) {
 
   mongoose.connection.on('disconnected', () => {
     console.warn('[mongodb] Disconnected');
+  });
+
+  mongoose.connection.on('error', (err) => {
+    console.error('[mongodb] Connection error event:', err.message);
   });
 } else if (hasUriPlaceholders) {
   console.warn('[mongodb] MONGODB_URI contains placeholder brackets. Update .env with real credentials.');
@@ -170,9 +175,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Root route for friendly message
+// Root route redirects to login page
 app.get('/', (req, res) => {
-  res.send('API server is running!');
+  res.redirect('/login.html');
 });
 
 app.use((err, req, res, next) => {
@@ -183,10 +188,13 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
-if (process.env.SERVE_STATIC === 'true') {
+// Serve the React SPA from dist/ when it has been built.
+// This allows client-side routes like /login and /dashboard to work correctly.
+const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
+if (distIndexExists) {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    if (req.path.startsWith('/api')) {
       next();
       return;
     }
@@ -233,8 +241,8 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
+// Log unhandled rejections but do NOT exit — transient MongoDB reconnection
+// failures and similar async errors must not crash the running server.
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-  // Exit immediately with error code for unhandled rejections
-  process.exit(1);
 });
