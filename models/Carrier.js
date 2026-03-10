@@ -1,47 +1,32 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const carrierSchema = new mongoose.Schema(
-  {
-    id: {
-      type: String,
-      required: true,
-      unique: true
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    nameLower: {
-      type: String
-    },
-    mcNumber: {
-      type: String
-    },
-    mcNumberNormalized: {
-      type: String
-    },
-    email: {
-      type: String
-    },
-    phone: {
-      type: String
-    },
-    paymentTerms: {
-      type: String
-    },
-    insuranceExpiry: {
-      type: Date
-    },
-    taxId: {
-      type: String
-    },
-    status: {
-      type: String,
-      enum: ['Active', 'Inactive'],
-      default: 'Active'
-    }
-  },
-  { timestamps: true }
-);
+const CarrierSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  mcNumber: { type: String, sparse: true, unique: true },
+  mcNumberNormalized: { type: String },
+  dotNumber: { type: String },
+  nameLower: { type: String },
+  email: { type: String },
+  phone: { type: String },
+  paymentTerms: { type: String },
+  insuranceExpiry: { type: Date },
+  taxId: { type: String },
+  status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
 
-export default mongoose.model("Carrier", carrierSchema);
+// Pre-save hook for auto-populating lowercase fields
+CarrierSchema.pre('save', function (next) {
+  if (this.name && (this.isModified('name') || !this.nameLower)) {
+    this.nameLower = this.name.toLowerCase();
+  }
+  next();
+});
+
+// Indexes for Carrier
+CarrierSchema.index({ nameLower: 1 });
+CarrierSchema.index({ mcNumberNormalized: 1 });
+
+export default mongoose.model('Carrier', CarrierSchema);

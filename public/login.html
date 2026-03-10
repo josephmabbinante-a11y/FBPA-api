@@ -49,25 +49,31 @@
       e.preventDefault();
       const email = this.email.value.trim();
       const password = this.password.value.trim();
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
       const msg = document.getElementById('message');
-      const data = await res.json();
-      console.log('Login response:', data);
-      if (res.ok && data.success) {
-        msg.textContent = 'Login successful! Redirecting...';
-        msg.style.color = 'green';
-        if (data.token) {
-          localStorage.setItem('jwt', data.token);
+      msg.textContent = '';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          msg.textContent = 'Login successful! Redirecting...';
+          msg.style.color = 'green';
+          if (data.token) {
+            localStorage.setItem('accessToken', data.token);
+          }
+          setTimeout(function() {
+            window.location.href = '/dashboard.html';
+          }, 1200);
+        } else {
+          const data = await res.json().catch((parseErr) => { console.error('Failed to parse error response:', parseErr); return {}; });
+          msg.textContent = data.message || data.error || `Login failed (${res.status}). Please try again.`;
+          msg.style.color = '#ff4d4f';
         }
-        setTimeout(function() {
-          window.location.href = '/dashboard';
-        }, 1200);
-      } else {
-        msg.textContent = data.message || data.error || 'Invalid email or password';
+      } catch (err) {
+        msg.textContent = 'Unable to connect to server. Please try again.';
         msg.style.color = '#ff4d4f';
       }
     });

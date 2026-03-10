@@ -1,5 +1,5 @@
 import express from "express";
-
+import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import User from "../models/Users.js";
@@ -7,8 +7,17 @@ import { loginValidators, validate } from "../middleware/validators.js";
 
 const router = express.Router();
 
+// Strict rate limiter for auth endpoints — 10 attempts per 15 minutes per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts, please try again later.' },
+});
+
 // Register endpoint
-router.post("/register", loginValidators, validate, async (req, res) => {
+router.post("/register", authLimiter, loginValidators, validate, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ error: "Database unavailable" });
@@ -40,7 +49,7 @@ router.post("/register", loginValidators, validate, async (req, res) => {
   }
 });
 
-router.post("/login", loginValidators, validate, async (req, res) => {
+router.post("/login", authLimiter, loginValidators, validate, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ error: "Database unavailable" });
@@ -48,27 +57,20 @@ router.post("/login", loginValidators, validate, async (req, res) => {
 
     const { email, password } = req.body;
     const searchEmail = email.toLowerCase();
-    console.log(`[LOGIN DEBUG] Attempting login for email: '${email}' (searching for: '${searchEmail}')`);
 
     const user = await User.findOne({ email: searchEmail });
-    console.log(`[LOGIN DEBUG] Query result:`, user);
     if (!user) {
-      console.log(`[LOGIN DEBUG] No user found for email: '${searchEmail}'`);
         return res.status(401).json({ success: false, message: "No account found for this email address." });
     }
-    console.log(`[LOGIN DEBUG] User found:`, user.email, user.id, user);
-    console.log(`[LOGIN DEBUG] Stored passwordHash:`, user.passwordHash);
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-    console.log(`[LOGIN DEBUG] Submitted password: '${password}'`);
-    console.log(`[LOGIN DEBUG] Password match result:`, passwordMatches);
       if (!passwordMatches) {
         return res.status(401).json({ success: false, message: "Incorrect password. Please try again or reset your password." });
       }
 
       res.json({ success: true, message: "Login successful", user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
-    console.error('[LOGIN DEBUG] Error during login:', error);
+    console.error('[LOGIN] Error during login:', error);
       res.status(500).json({ success: false, message: error.message });
   }
 });

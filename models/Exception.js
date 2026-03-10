@@ -1,30 +1,25 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const exceptionSchema = new mongoose.Schema(
-  {
-    code: {
-      type: String,
-      required: true
-    },
-    message: {
-      type: String,
-      required: true
-    },
-    severity: {
-      type: String,
-      enum: ["low", "medium", "high", "critical"],
-      default: "medium"
-    },
-    details: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {}
-    },
-    timestamp: {
-      type: Date,
-      default: Date.now
-    }
-  },
-  { timestamps: true }
-);
+const ExceptionSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  invoiceId: { type: String },
+  invoiceNumber: { type: String },
+  customerId: { type: String },
+  customer: { type: String },
+  carrierId: { type: String },
+  carrier: { type: String },
+  amount: { type: Number, default: 0 },
+  type: { type: String, enum: ['financial', 'compliance', 'operational'], default: 'financial' },
+  reason: { type: String },
+  description: { type: String },
+  severity: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
+  status: { type: String, enum: ['Open', 'Resolved', 'Closed'], default: 'Open' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
 
-export default mongoose.model("Exception", exceptionSchema);
+// Indexes for Exception
+ExceptionSchema.index({ invoiceId: 1 });
+ExceptionSchema.index({ status: 1 });
+
+export default mongoose.model('Exception', ExceptionSchema);

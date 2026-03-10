@@ -26,8 +26,23 @@
     </div>
   </div>
   <script>
+    (function() {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        window.location.href = '/login.html';
+      }
+    })();
+
     async function loadDashboard() {
-      const res = await fetch('/api/dashboard');
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/dashboard', {
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+      });
+      if (res.status === 401) {
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login.html';
+        return;
+      }
       if (!res.ok) {
         document.getElementById('summary').textContent = 'Failed to load dashboard.';
         return;

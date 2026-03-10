@@ -1,0 +1,91 @@
+{
+  "info": {
+    "name": "FBPA Auth API",
+    "_postman_id": "fbpa-auth-api-collection",
+    "description": "Auth endpoints for FBPA API with working tests/variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:4000" },
+    { "key": "email", "value": "qa+{{$timestamp}}@example.com" },
+    { "key": "password", "value": "pword123" },
+    { "key": "name", "value": "Joe QA" },
+    { "key": "access_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Signup",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"{{name}}\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/auth/signup"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Signup status is 201 or 409', function () {",
+              "  pm.expect([201, 409]).to.include(pm.response.code);",
+              "});",
+              "",
+              "let jsonData = {};",
+              "try { jsonData = pm.response.json(); } catch (e) {}",
+              "",
+              "if (pm.response.code === 201 && jsonData.accessToken) {",
+              "  pm.collectionVariables.set('access_token', jsonData.accessToken);",
+              "}",
+              "",
+              "if (jsonData.user && jsonData.user.email) {",
+              "  pm.collectionVariables.set('email', jsonData.user.email);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test('Login returns access token', function () {",
+              "  pm.expect(jsonData.accessToken).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.collectionVariables.set('access_token', jsonData.accessToken);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    }
+  ]
+}

@@ -1,47 +1,143 @@
-import express from "express";
+import express from 'express';
+import Exception from '../models/Exception.js';
+import Invoice from '../models/Invoice.js';
 
 const router = express.Router();
 
-// GET reports summary
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const reportsData = {
-      monthlySummary: [
-        {
-          month: "January",
-          invoices: 1050,
-          exceptions: 78,
-          savings: 10250.5,
-        },
-        {
-          month: "February",
-          invoices: 1247,
-          exceptions: 89,
-          savings: 12450.75,
-        },
-      ],
-      exceptionBreakdown: [
-        { reason: "Rate Mismatch", count: 34, percentage: 38.2 },
-        { reason: "Duplicate Invoice", count: 28, percentage: 31.5 },
-        { reason: "Invalid Accessorials", count: 15, percentage: 16.9 },
-        { reason: "Other", count: 12, percentage: 13.4 },
-      ],
-      statusDistribution: [
-        { status: "Audited", count: 645, percentage: 51.6 },
-        { status: "Pending", count: 412, percentage: 33.0 },
-        { status: "Exception", count: 190, percentage: 15.2 },
-      ],
-      topSavingsCarriers: [
-        { carrier: "FastShip", total: 2450.75 },
-        { carrier: "Oceanic", total: 1980.5 },
-        { carrier: "RailMax", total: 1750.25 },
-        { carrier: "AirLogistics", total: 1520.1 },
-      ],
-    };
+    const [invoices, exceptions] = await Promise.all([
+      Invoice.find().sort({ createdAt: -1 }).limit(1000),
+      Exception.find().sort({ createdAt: -1 }).limit(1000),
+    ]);
 
-    res.json(reportsData);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const monthKey = (d) => new Date(d).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const monthly = invoices.reduce((acc, inv) => {
+      const key = monthKey(inv.createdAt || new Date());
+      if (!acc[key]) acc[key] = { month: key, invoices: 0, exceptions: 0, savings: 0 };
+      acc[key].invoices += 1;
+      return acc;
+    }, {});
+
+    exceptions.forEach((exc) => {
+      const key = monthKey(exc.createdAt || new Date());
+      if (!monthly[key]) monthly[key] = { month: key, invoices: 0, exceptions: 0, savings: 0 };
+      monthly[key].exceptions += 1;
+      monthly[key].savings += Number(exc.amount || 0);
+    });
+
+    const monthlySummary = Object.values(monthly)
+      .sort((a, b) => new Date(a.month) - new Date(b.month))
+      .slice(-6);
+
+    const statusCounts = invoices.reduce((acc, inv) => {
+      const raw = String(inv.status || 'Pending');
+      const key = raw === 'Paid' ? 'Audited' : raw === 'Pending' ? 'Pending' : raw;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const invoiceTotal = Math.max(1, invoices.length);
+    const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({
+      status,
+      count,
+      percentage: Number(((count / invoiceTotal) * 100).toFixed(1)),
+    }));
+
+    const exceptionReasonCounts = exceptions.reduce((acc, exc) => {
+      const key = exc.reason || 'Other';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const exceptionBreakdown = Object.entries(exceptionReasonCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([reason, count]) => ({
+        reason,
+        count,
+        percentage: Number(((count / Math.max(1, exceptions.length)) * 100).toFixed(1)),
+      }));
+
+    const topCarrierSavings = exceptions.reduce((acc, exc) => {
+      const carrier = exc.carrier || 'Unknown Carrier';
+      acc[carrier] = (acc[carrier] || 0) + Number(exc.amount || 0);
+      return acc;
+    }, {});
+
+    const topSavingsCarriers = Object.entries(topCarrierSavings)
+      .map(([carrier, total]) => ({ carrier, total: Number(total.toFixed(2)) }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 6);
+
+    const savingsTrend = monthlySummary.map((row, idx) => ({
+      date: `M${idx + 1}`,
+      savings: Math.round(row.savings || 0),
+    }));
+
+    const exceptionTrend = monthlySummary.map((row, idx) => ({
+      date: `M${idx + 1}`,
+      exceptions: row.exceptions || 0,
+    }));
+
+    const topCarrierTotal = Math.max(1, topSavingsCarriers.reduce((sum, row) => sum + row.total, 0));
+
+    res.json({
+      monthlySummary,
+      exceptionBreakdown,
+      statusDistribution,
+      topSavingsCarriers,
+      savingsTrend,
+      exceptionTrend,
+      categoryDrilldown: [
+        {
+          category: 'Billing Errors',
+          summary: 'High-value billing exceptions requiring recovery and dispute management.',
+          kpis: [
+            { label: 'Findings', value: exceptions.length, note: 'Current volume' },
+            {
+              label: 'Recovery',
+              value: topSavingsCarriers.reduce((sum, row) => sum + row.total, 0),
+              format: 'currency',
+              note: 'Potential recovery',
+            },
+          ],
+          trend: savingsTrend.map((row, idx) => ({
+            period: `M${idx + 1}`,
+            findings: exceptionTrend[idx]?.exceptions || 0,
+            recovery: row.savings,
+          })),
+          customers: [],
+          causes: exceptionBreakdown.slice(0, 4).map((row) => ({ name: row.reason, value: row.count })),
+        },
+      ],
+      auditMetrics: {
+        freightBillAudit: [
+          { metric: 'Bills Audited', value: invoices.length, trend: '', status: 'Current' },
+          { metric: 'Exceptions Logged', value: exceptions.length, trend: '', status: 'Current' },
+        ],
+        paymentRecovery: topSavingsCarriers.slice(0, 4).map((row) => ({
+          type: row.carrier,
+          amount: row.total,
+          percentage: Number(((row.total / topCarrierTotal) * 100).toFixed(1)),
+        })),
+        auditFindings: exceptionBreakdown.slice(0, 4).map((row) => ({
+          category: row.reason,
+          count: row.count,
+          severity: row.percentage > 30 ? 'High' : row.percentage > 15 ? 'Medium' : 'Low',
+          resolution: 'In Progress',
+        })),
+        paymentProcessing: statusDistribution.map((row) => ({
+          status: row.status,
+          invoices: row.count,
+          percentage: row.percentage,
+          amount: 0,
+        })),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
