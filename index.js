@@ -42,6 +42,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
 const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
 const app = express();
+app.set('trust proxy', 1);
 // ...existing code...
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
