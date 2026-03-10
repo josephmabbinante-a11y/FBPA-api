@@ -1,5 +1,13 @@
 // ...existing code...
 import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 dotenv.config();
 const PORT = process.env.PORT || 4000;
 
@@ -8,12 +16,6 @@ const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.
 if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
   console.warn('[startup] WARNING: JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.');
 }
-import express from 'express';
-import cors from 'cors';
-import mongoose from 'mongoose';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
 import customersRouter from './routes/customers.js';
 import carriersRouter from './routes/carriers.js';
 import invoicesRouter from './routes/invoices.js';
@@ -97,6 +99,8 @@ if (MONGODB_URI && !hasUriPlaceholders) {
   console.warn(`[mongodb] No Mongo URI found. Checked keys: ${mongoUriEnvKeys.join(', ')}. Running without database.`);
 }
 
+app.use(helmet());
+
 app.use(cors({
   origin(origin, callback) {
     if (!origin) {
@@ -114,6 +118,16 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// General API rate limiter — 300 requests per 15 minutes per IP
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+});
+app.use('/api/', apiLimiter);
 
 app.use((req, res, next) => {
   const startedAt = Date.now();
