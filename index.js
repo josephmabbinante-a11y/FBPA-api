@@ -47,6 +47,7 @@ app.set('trust proxy', 1);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, 'dist');
+const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 
 // Allow only Vercel frontend and custom domains for CORS
 const defaultAllowedOrigins = [
@@ -190,9 +191,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Root route redirects to login page
-app.get('/', (req, res) => {
-  res.redirect('/login.html');
+// Root route: serve React SPA when built, otherwise redirect to static login
+app.get('/', (req, res, next) => {
+  if (distIndexExists) {
+    next();
+  } else {
+    res.redirect('/login.html');
+  }
 });
 
 app.use((err, req, res, next) => {
@@ -205,10 +210,9 @@ app.use((err, req, res, next) => {
 
 // Serve the React SPA from dist/ when it has been built.
 // This allows client-side routes like /login and /dashboard to work correctly.
-const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 if (distIndexExists) {
   app.use(express.static(distPath));
-  app.get('*', (req, res, next) => {
+  app.use((req, res, next) => {
     if (req.path.startsWith('/api')) {
       next();
       return;
