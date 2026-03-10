@@ -2,10 +2,15 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import User from "../models/Users.js";
 import { loginValidators, validate } from "../middleware/validators.js";
 
 const router = express.Router();
+
+function getJwtSecret() {
+  return process.env.JWT_SECRET ? process.env.JWT_SECRET.trim() : '';
+}
 
 // Strict rate limiter for auth endpoints — 10 attempts per 15 minutes per IP
 const authLimiter = rateLimit({
@@ -38,11 +43,16 @@ router.post("/register", authLimiter, loginValidators, validate, async (req, res
     });
     await user.save();
 
+    const secret = getJwtSecret();
+    if (!secret) {
+      console.error('[REGISTER] JWT_SECRET is not configured');
+      return res.status(500).json({ error: 'Server configuration error.' });
+    }
+    const accessToken = jwt.sign({ id: user.id, email: user.email, roles: user.roles }, secret, { expiresIn: process.env.JWT_EXPIRES_IN || '1h' });
+
     res.status(201).json({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      roles: user.roles
+      accessToken,
+      user: { id: user.id, email: user.email, name: user.name, roles: user.roles },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -68,7 +78,14 @@ router.post("/login", authLimiter, loginValidators, validate, async (req, res) =
         return res.status(401).json({ success: false, message: "Incorrect password. Please try again or reset your password." });
       }
 
-      res.json({ success: true, message: "Login successful", user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
+      const secret = getJwtSecret();
+      if (!secret) {
+        console.error('[LOGIN] JWT_SECRET is not configured');
+        return res.status(500).json({ success: false, message: 'Server configuration error.' });
+      }
+      const token = jwt.sign({ id: user.id, email: user.email, roles: user.roles }, secret, { expiresIn: process.env.JWT_EXPIRES_IN || '1h' });
+
+      res.json({ success: true, message: "Login successful", token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
     console.error('[LOGIN] Error during login:', error);
       res.status(500).json({ success: false, message: error.message });
