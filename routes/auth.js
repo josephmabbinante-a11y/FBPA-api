@@ -1,5 +1,5 @@
 import express from "express";
-
+import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -8,8 +8,17 @@ import { loginValidators, validate } from "../middleware/validators.js";
 
 const router = express.Router();
 
+// Strict rate limiter for auth endpoints — 10 attempts per 15 minutes per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts, please try again later.' },
+});
+
 // Register endpoint
-router.post("/register", loginValidators, validate, async (req, res) => {
+router.post("/register", authLimiter, loginValidators, validate, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ error: "Database unavailable" });
@@ -41,7 +50,7 @@ router.post("/register", loginValidators, validate, async (req, res) => {
   }
 });
 
-router.post("/login", loginValidators, validate, async (req, res) => {
+router.post("/login", authLimiter, loginValidators, validate, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ error: "Database unavailable" });
