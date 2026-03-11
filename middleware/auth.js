@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 export function verifyToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -21,4 +22,11 @@ export function verifyToken(req, res, next) {
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
   }
+}
+
+export function requireDatabase(req, res, next) {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ error: 'Database unavailable. Please try again later.' });
+  }
+  next();
 }
