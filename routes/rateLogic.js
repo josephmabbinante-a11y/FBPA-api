@@ -78,6 +78,17 @@ function buildLoadBoard() {
   ];
 }
 
+// GET /metrics — rate logic metrics summary
+router.get('/metrics', (req, res) => {
+  res.json({
+    averageRatePerMile: 2.05,
+    equipmentRates: { ...EQUIPMENT_BASE_RATE_PER_MILE },
+    laneTypeMultipliers: { ...LANE_TYPE_MULTIPLIER },
+    fuelSurchargePerMile: 0.18,
+    updatedAt: new Date().toISOString(),
+  });
+});
+
 router.post('/calculate', (req, res) => {
   const {
     origin = '',

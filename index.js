@@ -29,6 +29,11 @@ import invoiceImagesRouter from './routes/invoiceImages.js';
 import ediRouter from './routes/edi.js';
 import authRouter from './routes/auth.js';
 import auditsRouter from './routes/audits.js';
+import loadsRouter from './routes/loads.js';
+import driversRouter from './routes/drivers.js';
+import vehiclesRouter from './routes/vehicles.js';
+import tripsRouter from './routes/trips.js';
+import locationsRouter from './routes/locations.js';
 import { verifyToken } from './middleware/auth.js';
 
 // Load environment variables from .env (already loaded above)
@@ -179,6 +184,11 @@ app.use('/api/reports', verifyToken, reportsRouter);
 app.use('/api/uploads', verifyToken, uploadsRouter);
 app.use('/api/invoice-images', verifyToken, invoiceImagesRouter);
 app.use('/api/edi', verifyToken, ediRouter);
+app.use('/api/loads', verifyToken, loadsRouter);
+app.use('/api/drivers', verifyToken, driversRouter);
+app.use('/api/vehicles', verifyToken, vehiclesRouter);
+app.use('/api/trips', verifyToken, tripsRouter);
+app.use('/api/locations', verifyToken, locationsRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;

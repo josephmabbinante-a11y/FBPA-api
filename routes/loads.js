@@ -1,0 +1,138 @@
+import express from 'express';
+import Load from '../models/Load.js';
+
+const router = express.Router();
+
+const normalizeString = (value) => (value || '').trim();
+
+// Get all loads
+router.get('/', async (req, res) => {
+  try {
+    const loads = await Load.find().sort({ updatedAt: -1 });
+    res.json(loads);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get load by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const load = await Load.findOne({ id: req.params.id });
+    if (!load) return res.status(404).json({ error: 'Load not found' });
+    res.json(load);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create a new load
+router.post('/', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const id = `load-${Date.now()}`;
+    const newLoad = new Load({
+      id,
+      referenceNumber: normalizeString(body.referenceNumber),
+      status: body.status || 'Pending',
+      origin: normalizeString(body.origin),
+      destination: normalizeString(body.destination),
+      pickupDate: body.pickupDate || null,
+      deliveryDate: body.deliveryDate || null,
+      equipment: body.equipment || 'Van',
+      weight: Number(body.weight) || null,
+      mileage: Number(body.mileage) || null,
+      rate: Number(body.rate) || null,
+      customerId: normalizeString(body.customerId),
+      carrierId: normalizeString(body.carrierId),
+      driverId: normalizeString(body.driverId),
+      vehicleId: normalizeString(body.vehicleId),
+      notes: normalizeString(body.notes),
+    });
+    await newLoad.save();
+    res.status(201).json(newLoad);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /create — alias for creating a load (matches frontend expectation)
+router.post('/create', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const id = `load-${Date.now()}`;
+    const newLoad = new Load({
+      id,
+      referenceNumber: normalizeString(body.referenceNumber),
+      status: body.status || 'Pending',
+      origin: normalizeString(body.origin),
+      destination: normalizeString(body.destination),
+      pickupDate: body.pickupDate || null,
+      deliveryDate: body.deliveryDate || null,
+      equipment: body.equipment || 'Van',
+      weight: Number(body.weight) || null,
+      mileage: Number(body.mileage) || null,
+      rate: Number(body.rate) || null,
+      customerId: normalizeString(body.customerId),
+      carrierId: normalizeString(body.carrierId),
+      driverId: normalizeString(body.driverId),
+      vehicleId: normalizeString(body.vehicleId),
+      notes: normalizeString(body.notes),
+    });
+    await newLoad.save();
+    res.status(201).json(newLoad);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /templates/list — load templates
+router.get('/templates/list', async (req, res) => {
+  try {
+    res.json([]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /estimate-mileage — estimate mileage between origin and destination
+router.post('/estimate-mileage', (req, res) => {
+  const { origin, destination } = req.body || {};
+  if (!origin || !destination) {
+    return res.status(400).json({ error: 'origin and destination are required' });
+  }
+  // Simple deterministic estimate based on string lengths (placeholder logic)
+  const hash = (origin.length + destination.length) * 47;
+  const estimatedMiles = 200 + (hash % 2800);
+  res.json({ origin, destination, estimatedMiles });
+});
+
+// Update load (partial)
+router.patch('/:id', async (req, res) => {
+  try {
+    const updates = req.body || {};
+    const load = await Load.findOne({ id: req.params.id });
+    if (!load) return res.status(404).json({ error: 'Load not found' });
+
+    const stringFields = ['referenceNumber', 'origin', 'destination', 'equipment', 'notes', 'customerId', 'carrierId', 'driverId', 'vehicleId', 'status'];
+    for (const field of stringFields) {
+      if (updates[field] !== undefined) load[field] = normalizeString(updates[field]);
+    }
+    const dateFields = ['pickupDate', 'deliveryDate'];
+    for (const field of dateFields) {
+      if (updates[field] !== undefined) load[field] = updates[field];
+    }
+    const numericFields = ['weight', 'mileage', 'rate'];
+    for (const field of numericFields) {
+      if (updates[field] !== undefined) load[field] = Number(updates[field]) || null;
+    }
+
+    load.updatedAt = new Date();
+    await load.save();
+    res.json(load);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;
