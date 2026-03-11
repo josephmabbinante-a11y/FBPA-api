@@ -33,7 +33,7 @@ import { verifyToken, requireDatabase } from './middleware/auth.js';
 
 dotenv.config();
 
-const PORT = parseInt(process.env.PORT, 10) || 4000;
+const PORT = parseInt(process.env.PORT, 10) || 3000;
 
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
@@ -260,7 +260,7 @@ export default app;
 // Only start the HTTP server when running directly (not as a Vercel serverless function)
 if (!process.env.VERCEL) {
   const server = app.listen(PORT, () => {
-    console.log(`FBPA API server running on http://localhost:${PORT}`);
+    console.log(`FBPA API server running on port ${PORT}`);
   });
 
   // Graceful shutdown handling
