@@ -9,7 +9,9 @@ const normalizeKey = (value) => normalizeString(value).toLowerCase();
 // Get all drivers
 router.get('/', async (req, res) => {
   try {
-    const drivers = await Driver.find().sort({ updatedAt: -1 });
+    const filter = {};
+    if (req.query.carrierId) filter.carrierId = req.query.carrierId;
+    const drivers = await Driver.find(filter).sort({ updatedAt: -1 });
     res.json(drivers);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -72,6 +74,20 @@ router.patch('/:id', async (req, res) => {
     driver.updatedAt = new Date();
     await driver.save();
     res.json(driver);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete driver (soft delete — sets status to Inactive)
+router.delete('/:id', async (req, res) => {
+  try {
+    const driver = await Driver.findOne({ id: req.params.id });
+    if (!driver) return res.status(404).json({ error: 'Driver not found' });
+    driver.status = 'Inactive';
+    driver.updatedAt = new Date();
+    await driver.save();
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

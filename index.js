@@ -1,4 +1,3 @@
-// ...existing code...
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
@@ -8,18 +7,6 @@ import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-dotenv.config();
-const rawPort = parseInt(process.env.PORT, 10);
-const PORT = (Number.isFinite(rawPort) && rawPort > 0 && rawPort !== 27017) ? rawPort : 4000;
-if (process.env.PORT && Number(process.env.PORT) === 27017) {
-  console.warn('[startup] WARNING: PORT was set to 27017 (MongoDB default port). Falling back to port 4000.');
-}
-
-// Validate JWT_SECRET at startup
-const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
-if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
-  console.warn('[startup] WARNING: JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.');
-}
 import customersRouter from './routes/customers.js';
 import carriersRouter from './routes/carriers.js';
 import invoicesRouter from './routes/invoices.js';
@@ -44,7 +31,21 @@ import auditResultsRouter from './routes/auditResults.js';
 import freightIntelligenceRouter from './routes/freightIntelligence.js';
 import { verifyToken, requireDatabase } from './middleware/auth.js';
 
-// Load environment variables from .env (already loaded above)
+dotenv.config();
+
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+
+// Validate JWT_SECRET at startup
+const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
+if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
+  const msg = '[startup] JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.';
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(msg);
+  }
+  console.warn(`[startup] WARNING: ${msg}`);
+}
+
+// Locate MongoDB connection URI from supported environment variable names
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
 const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
   const value = process.env[key];
@@ -53,10 +54,8 @@ const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
 const MONGODB_URI = (mongoUriEnvKey ? process.env[mongoUriEnvKey] : '').trim();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
-const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
 const app = express();
 app.set('trust proxy', 1);
-// ...existing code...
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, 'dist');
@@ -77,7 +76,6 @@ const defaultAllowedOrigins = [
   // 'https://your-app.vercel.app',
   // Add any custom production domains here
 ];
-// ...existing code...
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
@@ -164,9 +162,7 @@ app.use((req, res, next) => {
 // Serve static files from public/ unconditionally (before body parsers and API routes)
 app.use(express.static(path.join(__dirname, 'public')));
 
-console.log('[MIDDLEWARE] Before express.json()');
 app.use(express.json());
-console.log('[MIDDLEWARE] After express.json()');
 app.use(express.urlencoded({ extended: true }));
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
@@ -181,8 +177,20 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
+// Health endpoint — no auth required, before protected API routes
+app.get('/api/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+  res.json({
+    status: 'ok',
+    database: dbStatus,
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+  });
+});
+
 // API routes
-// ...existing code...
 app.use('/api/auth', authRouter);
 app.use('/api/audits', verifyToken, requireDatabase, auditsRouter);
 app.use('/api/customers', verifyToken, requireDatabase, customersRouter);
@@ -205,17 +213,6 @@ app.use('/api/shipments', verifyToken, requireDatabase, shipmentsRouter);
 app.use('/api/carrier-profiles', verifyToken, requireDatabase, carrierProfilesRouter);
 app.use('/api/audit-results', verifyToken, requireDatabase, auditResultsRouter);
 app.use('/api/freight-intelligence', verifyToken, requireDatabase, freightIntelligenceRouter);
-
-app.get('/api/health', (req, res) => {
-  const dbState = mongoose.connection.readyState;
-  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
-  res.json({
-    ok: true,
-    dbStatus,
-    uptimeSec: Math.round(process.uptime()),
-    timestamp: new Date().toISOString(),
-  });
-});
 
 // Root route: serve React SPA when built, otherwise redirect to static login
 app.get('/', (req, res, next) => {
@@ -262,42 +259,49 @@ const server = app.listen(PORT, () => {
   console.log(`FBPA API server running on http://localhost:${PORT}`);
 });
 
-// Graceful shutdown handling
-const gracefulShutdown = async (signal) => {
-  console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
-  
-  // Stop accepting new connections
-  server.close(() => {
-    console.log('[shutdown] HTTP server closed');
+// Only start the HTTP server when running directly (not as a Vercel serverless function)
+if (!process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`FBPA API server running on port ${PORT}`);
   });
-  
-  // Close database connections
-  if (mongoose.connection.readyState !== 0) {
-    try {
-      await mongoose.connection.close();
-      console.log('[shutdown] MongoDB connection closed');
-    } catch (err) {
-      console.error('[shutdown] Error closing MongoDB connection:', err.message);
+
+  // Graceful shutdown handling
+  const gracefulShutdown = async (signal) => {
+    console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
+    
+    // Stop accepting new connections
+    server.close(() => {
+      console.log('[shutdown] HTTP server closed');
+    });
+    
+    // Close database connections
+    if (mongoose.connection.readyState !== 0) {
+      try {
+        await mongoose.connection.close();
+        console.log('[shutdown] MongoDB connection closed');
+      } catch (err) {
+        console.error('[shutdown] Error closing MongoDB connection:', err.message);
+      }
     }
-  }
-  
-  console.log('[shutdown] Graceful shutdown complete');
-  process.exit(0);
-};
+    
+    console.log('[shutdown] Graceful shutdown complete');
+    process.exit(0);
+  };
 
-// Handle shutdown signals
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  // Handle shutdown signals
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Handle uncaught errors
-process.on('uncaughtException', (err) => {
-  console.error('[error] Uncaught exception:', err);
-  console.error('[error] Stack:', err.stack);
-  gracefulShutdown('uncaughtException').finally(() => process.exit(1));
-});
+  // Handle uncaught errors
+  process.on('uncaughtException', (err) => {
+    console.error('[error] Uncaught exception:', err);
+    console.error('[error] Stack:', err.stack);
+    gracefulShutdown('uncaughtException').finally(() => process.exit(1));
+  });
 
-// Log unhandled rejections but do NOT exit — transient MongoDB reconnection
-// failures and similar async errors must not crash the running server.
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-});
+  // Log unhandled rejections but do NOT exit — transient MongoDB reconnection
+  // failures and similar async errors must not crash the running server.
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
+  });
+}
