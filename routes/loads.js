@@ -5,14 +5,37 @@ const router = express.Router();
 
 const normalizeString = (value) => (value || '').trim();
 
-// Get all loads
+// Get all loads with pagination and optional filters
 router.get('/', async (req, res) => {
   try {
-    const loads = await Load.find().sort({ updatedAt: -1 });
-    res.json(loads);
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const pageSize = Math.max(1, Math.min(200, parseInt(req.query.pageSize, 10) || 50));
+    const sort = req.query.sort || '-updatedAt';
+    const filter = {};
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.carrierId) filter.carrierId = req.query.carrierId;
+    if (req.query.driverId) filter.driverId = req.query.driverId;
+    if (req.query.vehicleId) filter.vehicleId = req.query.vehicleId;
+
+    const [items, total] = await Promise.all([
+      Load.find(filter).sort(sort).skip((page - 1) * pageSize).limit(pageSize),
+      Load.countDocuments(filter),
+    ]);
+
+    res.json({ items, total, page, pageSize, source: 'api' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// GET /:id/risk-signals — placeholder for future compliance signals
+router.get('/:id/risk-signals', (req, res) => {
+  res.json([]);
+});
+
+// GET /:id/events — placeholder for future event log
+router.get('/:id/events', (req, res) => {
+  res.json([]);
 });
 
 // Get load by ID
@@ -80,7 +103,9 @@ router.post('/estimate-mileage', (req, res) => {
   // Multiplier (47) and range (200–3000 miles) approximate typical US freight lanes.
   const hash = (origin.length + destination.length) * 47;
   const estimatedMiles = 200 + (hash % 2800);
-  res.json({ origin, destination, estimatedMiles });
+  // Confidence: deterministic value in 60–85 range
+  const confidence = 60 + (hash % 26);
+  res.json({ origin, destination, miles: estimatedMiles, estimatedMiles, method: 'estimated', confidence });
 });
 
 // Update load (partial)

@@ -8,7 +8,12 @@ const normalizeString = (value) => (value || '').trim();
 // Get all trips
 router.get('/', async (req, res) => {
   try {
-    const trips = await Trip.find().sort({ updatedAt: -1 });
+    const filter = {};
+    if (req.query.driverId) filter.driverId = req.query.driverId;
+    if (req.query.vehicleId) filter.vehicleId = req.query.vehicleId;
+    if (req.query.loadId) filter.loadId = req.query.loadId;
+    if (req.query.status) filter.status = req.query.status;
+    const trips = await Trip.find(filter).sort({ updatedAt: -1 });
     res.json(trips);
   } catch (err) {
     res.status(500).json({ error: err.message });
