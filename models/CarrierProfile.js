@@ -15,7 +15,6 @@ const CarrierProfileSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-CarrierProfileSchema.index({ carrier_mc: 1 });
 CarrierProfileSchema.index({ detention_frequency: -1 });
 CarrierProfileSchema.index({ audit_error_rate: -1 });
 CarrierProfileSchema.index({ safety_score: -1 });
