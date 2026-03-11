@@ -223,6 +223,20 @@ app.get('/', (req, res, next) => {
   }
 });
 
+// Serve the React SPA from dist/ when it has been built.
+// This catch-all must be AFTER all API routes but BEFORE error handlers so that
+// client-side routes like /loads/loadbuilder are served index.html instead of 404.
+if (distIndexExists) {
+  app.use(express.static(distPath));
+  app.use((req, res, next) => {
+    if ((req.method !== 'GET' && req.method !== 'HEAD') || req.path.startsWith('/api')) {
+      next();
+      return;
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 app.use((err, req, res, next) => {
   if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
     return res.status(403).json({ error: err.message });
@@ -241,21 +255,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Serve the React SPA from dist/ when it has been built.
-// This allows client-side routes like /login and /dashboard to work correctly.
-if (distIndexExists) {
-  app.use(express.static(distPath));
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api')) {
-      next();
-      return;
-    }
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
-}
-
-// Export the Express app for Vercel serverless deployment
-export default app;
+const server = app.listen(PORT, () => {
+  console.log(`FBPA API server running on http://localhost:${PORT}`);
+});
 
 // Only start the HTTP server when running directly (not as a Vercel serverless function)
 if (!process.env.VERCEL) {
