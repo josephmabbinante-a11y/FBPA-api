@@ -268,46 +268,52 @@ if (distIndexExists) {
   });
 }
 
-const server = app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${PORT}`);
-});
+// Export the Express app for Vercel serverless deployment
+export default app;
 
-// Graceful shutdown handling
-const gracefulShutdown = async (signal) => {
-  console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
-  
-  // Stop accepting new connections
-  server.close(() => {
-    console.log('[shutdown] HTTP server closed');
+// Only start the HTTP server when running directly (not as a Vercel serverless function)
+if (!process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`FBPA API server running on http://localhost:${PORT}`);
   });
-  
-  // Close database connections
-  if (mongoose.connection.readyState !== 0) {
-    try {
-      await mongoose.connection.close();
-      console.log('[shutdown] MongoDB connection closed');
-    } catch (err) {
-      console.error('[shutdown] Error closing MongoDB connection:', err.message);
+
+  // Graceful shutdown handling
+  const gracefulShutdown = async (signal) => {
+    console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
+    
+    // Stop accepting new connections
+    server.close(() => {
+      console.log('[shutdown] HTTP server closed');
+    });
+    
+    // Close database connections
+    if (mongoose.connection.readyState !== 0) {
+      try {
+        await mongoose.connection.close();
+        console.log('[shutdown] MongoDB connection closed');
+      } catch (err) {
+        console.error('[shutdown] Error closing MongoDB connection:', err.message);
+      }
     }
-  }
-  
-  console.log('[shutdown] Graceful shutdown complete');
-  process.exit(0);
-};
+    
+    console.log('[shutdown] Graceful shutdown complete');
+    process.exit(0);
+  };
 
-// Handle shutdown signals
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  // Handle shutdown signals
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Handle uncaught errors
-process.on('uncaughtException', (err) => {
-  console.error('[error] Uncaught exception:', err);
-  console.error('[error] Stack:', err.stack);
-  gracefulShutdown('uncaughtException').finally(() => process.exit(1));
-});
+  // Handle uncaught errors
+  process.on('uncaughtException', (err) => {
+    console.error('[error] Uncaught exception:', err);
+    console.error('[error] Stack:', err.stack);
+    gracefulShutdown('uncaughtException').finally(() => process.exit(1));
+  });
 
-// Log unhandled rejections but do NOT exit — transient MongoDB reconnection
-// failures and similar async errors must not crash the running server.
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-});
+  // Log unhandled rejections but do NOT exit — transient MongoDB reconnection
+  // failures and similar async errors must not crash the running server.
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
+  });
+}
