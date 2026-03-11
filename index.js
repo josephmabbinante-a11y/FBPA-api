@@ -232,7 +232,7 @@ app.get('/', (req, res, next) => {
 if (distIndexExists) {
   app.use(express.static(distPath));
   app.use((req, res, next) => {
-    if (req.method !== 'GET' || req.path.startsWith('/api')) {
+    if ((req.method !== 'GET' && req.method !== 'HEAD') || req.path.startsWith('/api')) {
       next();
       return;
     }
