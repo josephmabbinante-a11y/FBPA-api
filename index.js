@@ -38,6 +38,10 @@ import driversRouter from './routes/drivers.js';
 import vehiclesRouter from './routes/vehicles.js';
 import tripsRouter from './routes/trips.js';
 import locationsRouter from './routes/locations.js';
+import shipmentsRouter from './routes/shipments.js';
+import carrierProfilesRouter from './routes/carrierProfiles.js';
+import auditResultsRouter from './routes/auditResults.js';
+import freightIntelligenceRouter from './routes/freightIntelligence.js';
 import { verifyToken, requireDatabase } from './middleware/auth.js';
 
 // Load environment variables from .env (already loaded above)
@@ -197,6 +201,10 @@ app.use('/api/drivers', verifyToken, requireDatabase, driversRouter);
 app.use('/api/vehicles', verifyToken, requireDatabase, vehiclesRouter);
 app.use('/api/trips', verifyToken, requireDatabase, tripsRouter);
 app.use('/api/locations', verifyToken, requireDatabase, locationsRouter);
+app.use('/api/shipments', verifyToken, requireDatabase, shipmentsRouter);
+app.use('/api/carrier-profiles', verifyToken, requireDatabase, carrierProfilesRouter);
+app.use('/api/audit-results', verifyToken, requireDatabase, auditResultsRouter);
+app.use('/api/freight-intelligence', verifyToken, requireDatabase, freightIntelligenceRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
