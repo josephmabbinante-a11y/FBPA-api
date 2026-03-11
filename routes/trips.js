@@ -58,10 +58,11 @@ router.patch('/:id', async (req, res) => {
     const trip = await Trip.findOne({ id: req.params.id });
     if (!trip) return res.status(404).json({ error: 'Trip not found' });
 
-    const stringFields = ['loadId', 'driverId', 'vehicleId', 'origin', 'destination', 'notes', 'status'];
+    const stringFields = ['loadId', 'driverId', 'vehicleId', 'origin', 'destination', 'notes'];
     for (const field of stringFields) {
       if (updates[field] !== undefined) trip[field] = normalizeString(updates[field]);
     }
+    if (updates.status !== undefined) trip.status = updates.status;
     const dateFields = ['departureDate', 'arrivalDate'];
     for (const field of dateFields) {
       if (updates[field] !== undefined) trip[field] = updates[field];

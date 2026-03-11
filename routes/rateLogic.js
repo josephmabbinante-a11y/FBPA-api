@@ -85,7 +85,7 @@ router.get('/metrics', (req, res) => {
     equipmentRates: { ...EQUIPMENT_BASE_RATE_PER_MILE },
     laneTypeMultipliers: { ...LANE_TYPE_MULTIPLIER },
     fuelSurchargePerMile: 0.18,
-    updatedAt: new Date().toISOString(),
+    lastChecked: new Date().toISOString(),
   });
 });
 

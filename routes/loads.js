@@ -26,8 +26,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create a new load
-router.post('/', async (req, res) => {
+async function createLoad(req, res) {
   try {
     const body = req.body || {};
     const id = `load-${Date.now()}`;
@@ -54,37 +53,13 @@ router.post('/', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}
+
+// Create a new load
+router.post('/', createLoad);
 
 // POST /create — alias for creating a load (matches frontend expectation)
-router.post('/create', async (req, res) => {
-  try {
-    const body = req.body || {};
-    const id = `load-${Date.now()}`;
-    const newLoad = new Load({
-      id,
-      referenceNumber: normalizeString(body.referenceNumber),
-      status: body.status || 'Pending',
-      origin: normalizeString(body.origin),
-      destination: normalizeString(body.destination),
-      pickupDate: body.pickupDate || null,
-      deliveryDate: body.deliveryDate || null,
-      equipment: body.equipment || 'Van',
-      weight: Number(body.weight) || null,
-      mileage: Number(body.mileage) || null,
-      rate: Number(body.rate) || null,
-      customerId: normalizeString(body.customerId),
-      carrierId: normalizeString(body.carrierId),
-      driverId: normalizeString(body.driverId),
-      vehicleId: normalizeString(body.vehicleId),
-      notes: normalizeString(body.notes),
-    });
-    await newLoad.save();
-    res.status(201).json(newLoad);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post('/create', createLoad);
 
 // GET /templates/list — load templates
 router.get('/templates/list', async (req, res) => {
@@ -101,7 +76,8 @@ router.post('/estimate-mileage', (req, res) => {
   if (!origin || !destination) {
     return res.status(400).json({ error: 'origin and destination are required' });
   }
-  // Simple deterministic estimate based on string lengths (placeholder logic)
+  // Placeholder: derive a deterministic estimate from input string lengths.
+  // Multiplier (47) and range (200–3000 miles) approximate typical US freight lanes.
   const hash = (origin.length + destination.length) * 47;
   const estimatedMiles = 200 + (hash % 2800);
   res.json({ origin, destination, estimatedMiles });
@@ -114,10 +90,12 @@ router.patch('/:id', async (req, res) => {
     const load = await Load.findOne({ id: req.params.id });
     if (!load) return res.status(404).json({ error: 'Load not found' });
 
-    const stringFields = ['referenceNumber', 'origin', 'destination', 'equipment', 'notes', 'customerId', 'carrierId', 'driverId', 'vehicleId', 'status'];
+    const stringFields = ['referenceNumber', 'origin', 'destination', 'notes', 'customerId', 'carrierId', 'driverId', 'vehicleId'];
     for (const field of stringFields) {
       if (updates[field] !== undefined) load[field] = normalizeString(updates[field]);
     }
+    if (updates.status !== undefined) load.status = updates.status;
+    if (updates.equipment !== undefined) load.equipment = updates.equipment;
     const dateFields = ['pickupDate', 'deliveryDate'];
     for (const field of dateFields) {
       if (updates[field] !== undefined) load[field] = updates[field];
