@@ -1,4 +1,3 @@
-[
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
@@ -256,10 +255,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${PORT}`);
-});
-
 // Only start the HTTP server when running directly (not as a Vercel serverless function)
 if (!process.env.VERCEL) {
   const server = app.listen(PORT, () => {
@@ -304,5 +299,5 @@ if (!process.env.VERCEL) {
   // failures and similar async errors must not crash the running server.
   process.on('unhandledRejection', (reason, promise) => {
     console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-  }
+  });
 }
