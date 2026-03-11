@@ -1,3 +1,4 @@
+[
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
@@ -303,5 +304,5 @@ if (!process.env.VERCEL) {
   // failures and similar async errors must not crash the running server.
   process.on('unhandledRejection', (reason, promise) => {
     console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-  });
+  }
 }
