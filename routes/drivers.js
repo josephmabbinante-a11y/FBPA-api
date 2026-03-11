@@ -77,4 +77,18 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
+// Delete driver (soft delete — sets status to Inactive)
+router.delete('/:id', async (req, res) => {
+  try {
+    const driver = await Driver.findOne({ id: req.params.id });
+    if (!driver) return res.status(404).json({ error: 'Driver not found' });
+    driver.status = 'Inactive';
+    driver.updatedAt = new Date();
+    await driver.save();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

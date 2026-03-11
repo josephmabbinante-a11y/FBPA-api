@@ -208,12 +208,10 @@ app.use('/api/freight-intelligence', verifyToken, requireDatabase, freightIntell
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
-  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
   res.json({
-    ok: true,
-    dbStatus,
-    uptimeSec: Math.round(process.uptime()),
-    timestamp: new Date().toISOString(),
+    status: 'ok',
+    database: dbState === 1 ? 'connected' : 'disconnected',
+    uptime: Math.floor(process.uptime()),
   });
 });
 
