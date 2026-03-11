@@ -25,6 +25,7 @@ const LoadSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+// id index is handled by unique: true above
 LoadSchema.index({ status: 1 });
 LoadSchema.index({ customerId: 1 });
 LoadSchema.index({ carrierId: 1 });
