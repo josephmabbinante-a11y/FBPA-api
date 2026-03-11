@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE, authHeaders, handle401 } from '../lib/api.js';
 
 const cardStyle = {
   background: 'var(--bg-card)',
@@ -20,7 +21,6 @@ const statValueStyle = {
   color: 'var(--text-primary)',
 };
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 function StatCard({ label, value, color }) {
   return (
@@ -68,15 +68,9 @@ export default function FleetDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    fetch(`${API_BASE}/api/dashboard`, { headers })
+    fetch(`${API_BASE}/api/dashboard`, { headers: authHeaders() })
       .then((res) => {
-        if (res.status === 401) {
-          localStorage.removeItem('accessToken');
-          window.location.href = '/login';
-          return null;
-        }
+        if (handle401(res)) return null;
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         return res.json();
       })
