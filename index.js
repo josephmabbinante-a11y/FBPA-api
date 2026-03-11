@@ -8,12 +8,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-dotenv.config();
-const rawPort = parseInt(process.env.PORT, 10);
-const PORT = (Number.isFinite(rawPort) && rawPort > 0 && rawPort !== 27017) ? rawPort : 4000;
-if (process.env.PORT && Number(process.env.PORT) === 27017) {
-  console.warn('[startup] WARNING: PORT was set to 27017 (MongoDB default port). Falling back to port 4000.');
-}
+
 
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
