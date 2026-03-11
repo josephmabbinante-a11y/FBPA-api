@@ -22,7 +22,6 @@ const ShipmentSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-ShipmentSchema.index({ load_id: 1 });
 ShipmentSchema.index({ carrier_mc: 1 });
 ShipmentSchema.index({ origin: 1, destination: 1 });
 ShipmentSchema.index({ status: 1 });
