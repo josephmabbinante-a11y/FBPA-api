@@ -67,6 +67,9 @@ router.get('/', async (req, res) => {
       Exception.find().sort({ createdAt: -1 }).limit(200),
     ]);
 
+    const safeInvoices = Array.isArray(invoices) ? invoices : [];
+    const safeExceptions = Array.isArray(exceptions) ? exceptions : [];
+
     const byType = invoiceTotals.reduce((acc, row) => {
       acc[row._id] = row;
       return acc;
@@ -80,7 +83,7 @@ router.get('/', async (req, res) => {
     const totalInvoices = (byType.AP?.count || 0) + (byType.AR?.count || 0);
     const totalExceptions = (byExceptionStatus.Open?.count || 0) + (byExceptionStatus.Resolved?.count || 0);
 
-    const exceptionReasonCounts = exceptions.reduce((acc, item) => {
+    const exceptionReasonCounts = safeExceptions.reduce((acc, item) => {
       const key = item.reason || item.type || 'Other';
       acc[key] = (acc[key] || 0) + 1;
       return acc;
@@ -95,7 +98,7 @@ router.get('/', async (req, res) => {
         fill: ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0099cc'][idx % 5],
       }));
 
-    const carrierSpend = invoices
+    const carrierSpend = safeInvoices
       .filter((inv) => inv.type === 'AP')
       .reduce((acc, inv) => {
         const key = inv.carrierName || inv.carrier || 'Unknown Carrier';
@@ -115,7 +118,7 @@ router.get('/', async (req, res) => {
       .slice(0, 5);
 
     const recentActivity = [
-      ...exceptions.slice(0, 5).map((item) => ({
+      ...safeExceptions.slice(0, 5).map((item) => ({
         id: item.id,
         type: 'exception',
         invoiceNumber: item.invoiceNumber,
@@ -124,7 +127,7 @@ router.get('/', async (req, res) => {
         status: item.status || 'Open',
         timestamp: item.createdAt || new Date(),
       })),
-      ...invoices.slice(0, 5).map((item) => ({
+      ...safeInvoices.slice(0, 5).map((item) => ({
         id: item.id,
         type: 'invoice',
         invoiceNumber: item.invoiceNumber,
@@ -136,22 +139,62 @@ router.get('/', async (req, res) => {
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
       .slice(0, 8);
 
-    const invoiceTrend = mapDailyCounts(invoices);
-    const exceptionTrend = mapDailyCounts(exceptions);
-    const savingsTrend = mapDailyCounts(exceptions, (item) => Number(item.amount || 0));
-    const pendingTrend = mapDailyCounts(invoices, (item) => (item.status === 'Pending' ? 1 : 0));
+    const invoiceTrend = mapDailyCounts(safeInvoices);
+    const exceptionTrend = mapDailyCounts(safeExceptions);
+    const savingsTrend = mapDailyCounts(safeExceptions, (item) => Number(item.amount || 0));
+    const pendingTrend = mapDailyCounts(safeInvoices, (item) => (item.status === 'Pending' ? 1 : 0));
 
     const apTotal = byType.AP?.totalAmount || 0;
     const arTotal = byType.AR?.totalAmount || 0;
     const totalVolume = apTotal + arTotal;
     const margin = totalVolume > 0 ? Math.round(((arTotal - apTotal) / totalVolume) * 100) : 0;
 
+    const openExceptions = byExceptionStatus.Open?.count || 0;
+    const exceptionSavings = Math.round(
+      (byExceptionStatus.Open?.amount || 0) + (byExceptionStatus.Resolved?.amount || 0)
+    );
+
+    const recentInvoices = safeInvoices.slice(0, 10).map((inv) => ({
+      id: inv.id,
+      invoiceNumber: inv.invoiceNumber,
+      type: inv.type,
+      amount: Number(inv.amount || 0),
+      status: inv.status,
+      carrierId: inv.carrierId,
+      customerId: inv.customerId,
+      createdAt: inv.createdAt,
+    }));
+
+    const recentExceptions = safeExceptions.slice(0, 10).map((exc) => ({
+      id: exc.id,
+      invoiceNumber: exc.invoiceNumber,
+      type: exc.type,
+      reason: exc.reason,
+      amount: Number(exc.amount || 0),
+      status: exc.status,
+      carrierId: exc.carrierId,
+      createdAt: exc.createdAt,
+    }));
+
     res.json({
+      // Flat top-level keys matching mock shape
+      totalInvoices,
+      totalAP: Math.round(apTotal),
+      totalAR: Math.round(arTotal),
+      openExceptions,
+      totalExceptions,
+      exceptionSavings,
+      invoiceTrend,
+      exceptionTrend,
+      exceptionBreakdown,
+      recentInvoices,
+      recentExceptions,
+      // Extended nested shape (backward compat)
       summary: {
         totalInvoices,
         totalExceptions,
-        totalSavings: Math.round((byExceptionStatus.Open?.amount || 0) + (byExceptionStatus.Resolved?.amount || 0)),
-        pendingReview: byExceptionStatus.Open?.count || 0,
+        totalSavings: exceptionSavings,
+        pendingReview: openExceptions,
         onTime: 96,
         claimsRate: 3,
         margin,
@@ -169,7 +212,6 @@ router.get('/', async (req, res) => {
         loadsTrend: invoiceTrend,
         revenueTrend: savingsTrend,
       },
-      exceptionBreakdown,
       claimsBreakdown: exceptionBreakdown,
       savingsByCarrier,
       volumeByLane: savingsByCarrier,

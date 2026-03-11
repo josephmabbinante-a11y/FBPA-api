@@ -8,7 +8,10 @@ const normalizeString = (value) => (value || '').trim();
 // Get all vehicles
 router.get('/', async (req, res) => {
   try {
-    const vehicles = await Vehicle.find().sort({ updatedAt: -1 });
+    const filter = {};
+    if (req.query.carrierId) filter.carrierId = req.query.carrierId;
+    if (req.query.status) filter.status = req.query.status;
+    const vehicles = await Vehicle.find(filter).sort({ updatedAt: -1 });
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ error: err.message });

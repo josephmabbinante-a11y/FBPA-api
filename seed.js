@@ -6,7 +6,10 @@ import Customer from './models/Customer.js';
 import Carrier from './models/Carrier.js';
 import Invoice from './models/Invoice.js';
 import Exception from './models/Exception.js';
-import { customers, carriers, invoices, exceptions } from './seedData.js';
+import Driver from './models/Driver.js';
+import Vehicle from './models/Vehicle.js';
+import Trip from './models/Trip.js';
+import { customers, carriers, invoices, exceptions, drivers, vehicles, trips } from './seedData.js';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/fbpa';
 
@@ -16,10 +19,16 @@ async function seed() {
   await Carrier.deleteMany({});
   await Invoice.deleteMany({});
   await Exception.deleteMany({});
+  await Driver.deleteMany({});
+  await Vehicle.deleteMany({});
+  await Trip.deleteMany({});
   await Customer.insertMany(customers);
   await Carrier.insertMany(carriers);
   await Invoice.insertMany(invoices);
   await Exception.insertMany(exceptions);
+  await Driver.insertMany(drivers);
+  await Vehicle.insertMany(vehicles);
+  await Trip.insertMany(trips);
   console.log('Database seeded successfully!');
   await mongoose.disconnect();
 }

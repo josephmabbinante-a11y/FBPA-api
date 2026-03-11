@@ -181,6 +181,19 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
+// Health endpoint — no auth required, before protected API routes
+app.get('/api/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+  res.json({
+    status: 'ok',
+    database: dbStatus,
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+  });
+});
+
 // API routes
 // ...existing code...
 app.use('/api/auth', authRouter);
