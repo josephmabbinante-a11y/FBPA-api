@@ -9,7 +9,11 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 dotenv.config();
-const PORT = process.env.PORT || 4000;
+const rawPort = parseInt(process.env.PORT, 10);
+const PORT = (Number.isFinite(rawPort) && rawPort > 0 && rawPort !== 27017) ? rawPort : 4000;
+if (process.env.PORT && Number(process.env.PORT) === 27017) {
+  console.warn('[startup] WARNING: PORT was set to 27017 (MongoDB default port). Falling back to port 4000.');
+}
 
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
@@ -34,7 +38,7 @@ import driversRouter from './routes/drivers.js';
 import vehiclesRouter from './routes/vehicles.js';
 import tripsRouter from './routes/trips.js';
 import locationsRouter from './routes/locations.js';
-import { verifyToken } from './middleware/auth.js';
+import { verifyToken, requireDatabase } from './middleware/auth.js';
 
 // Load environment variables from .env (already loaded above)
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
@@ -172,23 +176,23 @@ app.use((err, req, res, next) => {
 // API routes
 // ...existing code...
 app.use('/api/auth', authRouter);
-app.use('/api/audits', verifyToken, auditsRouter);
-app.use('/api/customers', verifyToken, customersRouter);
-app.use('/api/carriers', verifyToken, carriersRouter);
-app.use('/api/invoices', verifyToken, invoicesRouter);
-app.use('/api/exceptions', verifyToken, exceptionsRouter);
+app.use('/api/audits', verifyToken, requireDatabase, auditsRouter);
+app.use('/api/customers', verifyToken, requireDatabase, customersRouter);
+app.use('/api/carriers', verifyToken, requireDatabase, carriersRouter);
+app.use('/api/invoices', verifyToken, requireDatabase, invoicesRouter);
+app.use('/api/exceptions', verifyToken, requireDatabase, exceptionsRouter);
 app.use('/api/messages', verifyToken, messagesRouter);
 app.use('/api/rate-logic', verifyToken, rateLogicRouter);
-app.use('/api/dashboard', verifyToken, dashboardRouter);
-app.use('/api/reports', verifyToken, reportsRouter);
+app.use('/api/dashboard', verifyToken, requireDatabase, dashboardRouter);
+app.use('/api/reports', verifyToken, requireDatabase, reportsRouter);
 app.use('/api/uploads', verifyToken, uploadsRouter);
 app.use('/api/invoice-images', verifyToken, invoiceImagesRouter);
 app.use('/api/edi', verifyToken, ediRouter);
-app.use('/api/loads', verifyToken, loadsRouter);
-app.use('/api/drivers', verifyToken, driversRouter);
-app.use('/api/vehicles', verifyToken, vehiclesRouter);
-app.use('/api/trips', verifyToken, tripsRouter);
-app.use('/api/locations', verifyToken, locationsRouter);
+app.use('/api/loads', verifyToken, requireDatabase, loadsRouter);
+app.use('/api/drivers', verifyToken, requireDatabase, driversRouter);
+app.use('/api/vehicles', verifyToken, requireDatabase, vehiclesRouter);
+app.use('/api/trips', verifyToken, requireDatabase, tripsRouter);
+app.use('/api/locations', verifyToken, requireDatabase, locationsRouter);
 
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
