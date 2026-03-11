@@ -66,11 +66,11 @@ const defaultAllowedOrigins = [
   'https://hdhtransport.com',
   'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
   'https://fbpa-qh4fmw9tg-josephmabbinante-a11ys-projects.vercel.app',
-  'https://vercel.com/josephmabbinante-a11ys-projects/fbpa-ui'
-  , 'http://localhost:5173',
+  'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  ''
+  // Add your deployed frontend URL here, e.g.:
+  // 'https://your-app.vercel.app',
   // Add any custom production domains here
 ];
 // ...existing code...
@@ -93,6 +93,10 @@ if (MONGODB_URI && !hasUriPlaceholders) {
   }
   mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    heartbeatFrequencyMS: 10000,
+    connectTimeoutMS: 10000,
   })
     .then(() => console.log('[mongodb] Connected'))
     .catch((err) => console.error('[mongodb] Connection error:', err.message));
@@ -222,6 +226,16 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
+// Global catch-all error handler — must be after all API routes
+app.use((err, req, res, next) => {
+  console.error('[error] Unhandled route error:', err.message, err.stack);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({
+    ok: false,
+    error: err.message || 'Internal server error',
+  });
+});
+
 // Serve the React SPA from dist/ when it has been built.
 // This allows client-side routes like /login and /dashboard to work correctly.
 if (distIndexExists) {
@@ -270,8 +284,7 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('uncaughtException', (err) => {
   console.error('[error] Uncaught exception:', err);
   console.error('[error] Stack:', err.stack);
-  // Exit immediately with error code for uncaught exceptions
-  process.exit(1);
+  gracefulShutdown('uncaughtException').finally(() => process.exit(1));
 });
 
 // Log unhandled rejections but do NOT exit — transient MongoDB reconnection
