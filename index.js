@@ -219,6 +219,15 @@ app.use('/api/carrier-profiles', verifyToken, requireDatabase, carrierProfilesRo
 app.use('/api/audit-results', verifyToken, requireDatabase, auditResultsRouter);
 app.use('/api/freight-intelligence', verifyToken, requireDatabase, freightIntelligenceRouter);
 
+app.get('/api/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  res.json({
+    status: 'ok',
+    database: dbState === 1 ? 'connected' : 'disconnected',
+    uptime: Math.floor(process.uptime()),
+  });
+});
+
 // Root route: serve React SPA when built, otherwise redirect to static login
 app.get('/', (req, res, next) => {
   if (distIndexExists) {

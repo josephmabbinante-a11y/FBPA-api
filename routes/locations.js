@@ -6,6 +6,23 @@ const router = express.Router();
 const normalizeString = (value) => (value || '').trim();
 const normalizeKey = (value) => normalizeString(value).toLowerCase();
 
+// Search locations by query string
+router.get('/search', async (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    if (!q) return res.json([]);
+    const regex = new RegExp(q, 'i');
+    const locations = await Location.find({
+      $or: [{ name: regex }, { city: regex }, { state: regex }, { zip: regex }],
+    })
+      .sort({ name: 1 })
+      .limit(20);
+    res.json(locations);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get all locations
 router.get('/', async (req, res) => {
   try {
@@ -72,6 +89,18 @@ router.patch('/:id', async (req, res) => {
     location.updatedAt = new Date();
     await location.save();
     res.json(location);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete location
+router.delete('/:id', async (req, res) => {
+  try {
+    const location = await Location.findOne({ id: req.params.id });
+    if (!location) return res.status(404).json({ error: 'Location not found' });
+    await location.deleteOne();
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -14,6 +14,13 @@ router.get('/', async (req, res) => {
     if (req.query.loadId) filter.loadId = req.query.loadId;
     if (req.query.status) filter.status = req.query.status;
     const trips = await Trip.find(filter).sort({ updatedAt: -1 });
+    const { loadId, driverId, vehicleId, status } = req.query;
+    const query = {};
+    if (loadId) query.loadId = loadId;
+    if (driverId) query.driverId = driverId;
+    if (vehicleId) query.vehicleId = vehicleId;
+    if (status) query.status = status;
+    const trips = await Trip.find(query).sort({ updatedAt: -1 });
     res.json(trips);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -77,6 +84,18 @@ router.patch('/:id', async (req, res) => {
     trip.updatedAt = new Date();
     await trip.save();
     res.json(trip);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete trip
+router.delete('/:id', async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ id: req.params.id });
+    if (!trip) return res.status(404).json({ error: 'Trip not found' });
+    await trip.deleteOne();
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

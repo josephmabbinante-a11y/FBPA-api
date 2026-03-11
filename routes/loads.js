@@ -23,6 +23,21 @@ router.get('/', async (req, res) => {
     ]);
 
     res.json({ items, total, page, pageSize, source: 'api' });
+// Carrier cost is typically ~82% of the load rate (standard industry margin)
+const CARRIER_COST_RATIO = 0.82;
+
+// Get all loads
+router.get('/', async (req, res) => {
+  try {
+    const loads = await Load.find().sort({ updatedAt: -1 });
+    const items = loads.map((load) => ({
+      ...load.toObject(),
+      miles: load.mileage,
+      revenue: load.rate,
+      carrierCost: load.rate ? Math.round(load.rate * CARRIER_COST_RATIO) : null,
+      carrier: { name: load.carrierId || '' },
+    }));
+    res.json({ items, total: items.length, source: 'api' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -106,6 +121,16 @@ router.post('/estimate-mileage', (req, res) => {
   // Confidence: deterministic value in 60–85 range
   const confidence = 60 + (hash % 26);
   res.json({ origin, destination, miles: estimatedMiles, estimatedMiles, method: 'estimated', confidence });
+});
+
+// GET /:id/events — stub for future event log
+router.get('/:id/events', async (req, res) => {
+  res.json([]);
+});
+
+// GET /:id/risk-signals — stub for compliance/margin risk
+router.get('/:id/risk-signals', async (req, res) => {
+  res.json({ signals: [] });
 });
 
 // Update load (partial)
