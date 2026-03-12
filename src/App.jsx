@@ -1,6 +1,5 @@
 import React from 'react';
 import root from index.jsx';
-import './index.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard.jsx';
 import Customers from './pages/Customers.jsx';
