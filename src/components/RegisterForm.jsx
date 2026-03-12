@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-
-const rawApiBase = (import.meta.env.VITE_API_URL || '').trim();
-const API_BASE = rawApiBase.replace(/\/+$/, '');
+import { API_BASE } from '../lib/api.js';
 
 export default function RegisterForm() {
   const [name, setName] = useState('');

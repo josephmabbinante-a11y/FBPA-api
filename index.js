@@ -62,19 +62,16 @@ const distPath = path.resolve(__dirname, 'dist');
 const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 
 // Allow only Vercel frontend and custom domains for CORS
+// Add your Vercel production URL here (stable, non-expiring URLs only).
+// Use the CORS_ORIGIN Railway env variable for preview/dynamic URLs.
 const defaultAllowedOrigins = [
   'http://localhost:3000',
-  'https://express-git-fbpa-josephmabbinante-a11ys-projects.vercel.app',
-  'https://www.hdhtransport.com',
-  'https://hdhtransport.com',
-  'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
-  'https://fbpa-qh4fmw9tg-josephmabbinante-a11ys-projects.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  // Add your deployed frontend URL here, e.g.:
-  // 'https://your-app.vercel.app',
-  // Add any custom production domains here
+  'https://www.hdhtransport.com',
+  'https://hdhtransport.com',
+  // 'https://your-app.vercel.app', // <-- add your Vercel production URL here
 ];
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
