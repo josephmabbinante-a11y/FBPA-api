@@ -252,6 +252,9 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Export the Express app for Vercel serverless function handler
+export default app;
+
 // Only start the HTTP server when running directly (not as a Vercel serverless function)
 if (!process.env.VERCEL) {
   const server = app.listen(PORT, () => {
