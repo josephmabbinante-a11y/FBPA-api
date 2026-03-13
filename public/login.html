@@ -64,6 +64,9 @@
           if (data.token) {
             localStorage.setItem('accessToken', data.token);
           }
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
           setTimeout(function() {
             window.location.href = '/dashboard.html';
           }, 1200);
