@@ -1,15 +1,20 @@
 // Usage: node scripts/addUser.js <email> <password> <name>
 import dotenv from 'dotenv';
-dotenv.config();
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://josephmabbinante_db_user:tEkZDundjpXeSa2G@cluster0.fvycshx.mongodb.net/fbpa-db?appName=Cluster0';
 import User from '../models/Users.js';
 
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI;
+
 async function addUser(email, password, name = '') {
+  if (!MONGODB_URI) {
+    console.error('[ERROR] MONGODB_URI environment variable is not set. Create a .env file or set the variable.');
+    process.exit(1);
+  }
   try {
-    console.log('[DEBUG] Connecting to MongoDB:', MONGODB_URI);
+    console.log('[DEBUG] Connecting to MongoDB...');
     await mongoose.connect(MONGODB_URI);
     console.log('[DEBUG] Connected to MongoDB');
     const existing = await User.findOne({ email: email.toLowerCase() });

@@ -28,7 +28,7 @@ mongodb+srv://myuser:mypassword@cluster0.abc123.mongodb.net/fbpa-db?retryWrites=
 ### Optional Variables
 
 #### `PORT`
-Server port (default: 4000)
+Server port (default: 3000)
 
 #### `NODE_ENV`
 Environment mode: `development` | `production` | `test`
@@ -78,6 +78,8 @@ SMTP_FROM=noreply@audit-iq.com
 
 ### Railway Deployment
 
+A `railway.json` is included in this repository. Railway will automatically detect it and use the configured health check path (`/api/health`) to verify the service is running and connected.
+
 1. **Create New Project:**
    - Visit https://railway.app/dashboard
    - Click "New Project" → "Deploy from GitHub repo"
@@ -88,17 +90,19 @@ SMTP_FROM=noreply@audit-iq.com
    - Add each variable:
      ```
      MONGODB_URI = <your-mongodb-connection-string>
-     NODE_ENV = production
+     JWT_SECRET  = <random-string-32+-characters>
+     NODE_ENV    = production
      CORS_ORIGIN = <your-frontend-url>
      ```
 
 3. **Deploy:**
    - Railway auto-deploys on git push to main
-   - Check logs to verify MongoDB connection
+   - Check logs to verify MongoDB connection: `[mongodb] Connected`
+   - The service becomes "Connected" once `/api/health` returns HTTP 200
 
 4. **Get API URL:**
    - Go to "Settings" → "Domains"
-   - Copy the Railway-provided URL (e.g., `https://fbpa-api.up.railway.app`)
+   - Copy the Railway-provided URL (e.g., `https://fbpa-api-production.up.railway.app`)
 
 ---
 
@@ -209,17 +213,18 @@ curl https://your-api-url.railway.app/api/health
 **Expected response:**
 ```json
 {
-  "ok": true,
-  "dbStatus": "connected",
-  "uptimeSec": 123,
-  "timestamp": "2026-02-12T..."
+  "status": "ok",
+  "database": "connected",
+  "uptime": 123,
+  "timestamp": "2026-02-12T...",
+  "version": "1.0.0"
 }
 ```
 
 ### Test Login Endpoint
 
 ```bash
-curl -X POST https://your-api-url.railway.app/auth/login \
+curl -X POST https://your-api-url.railway.app/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
 ```
@@ -286,7 +291,7 @@ VITE_API_URL=http://localhost:4000
 VITE_API_URL=https://your-api-url.railway.app
 ```
 
-Your existing `src/api/client.js` already reads this variable:
+Your existing `src/lib/api.js` already reads this variable:
 ```javascript
 const API_URL = import.meta.env.VITE_API_URL;
 ```
