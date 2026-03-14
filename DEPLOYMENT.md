@@ -291,7 +291,7 @@ VITE_API_URL=http://localhost:4000
 VITE_API_URL=https://your-api-url.railway.app
 ```
 
-Your existing `src/api/client.js` already reads this variable:
+Your existing `src/lib/api.js` already reads this variable:
 ```javascript
 const API_URL = import.meta.env.VITE_API_URL;
 ```
