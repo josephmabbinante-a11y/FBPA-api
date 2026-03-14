@@ -11,7 +11,7 @@ import Vehicle from './models/Vehicle.js';
 import Trip from './models/Trip.js';
 import { customers, carriers, invoices, exceptions, drivers, vehicles, trips } from './seedData.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/fbpa';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://FBPADB:FBPA2020@cluster0.fvycshx.mongodb.net/fbpa-db?appName=Cluster0';
 
 async function seed() {
   await mongoose.connect(MONGODB_URI);
