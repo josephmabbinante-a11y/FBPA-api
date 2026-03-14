@@ -1,7 +1,7 @@
 {
   "build": {
     "builder":"default"
-    "buildCommand": "npm run dev"
+    "buildCommand":"npm run dev"
   },
   "deploy": {
     "startCommand": "npm run dev",
