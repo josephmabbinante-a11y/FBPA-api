@@ -159,6 +159,10 @@ app.use((req, res, next) => {
 // Serve static files from public/ unconditionally (before body parsers and API routes)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Return 204 No Content for favicon requests when no favicon.ico exists in public/,
+// preventing these requests from reaching the SPA catch-all or error handlers.
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((err, req, res, next) => {
