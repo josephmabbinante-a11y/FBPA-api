@@ -1,4 +1,3 @@
-// ...existing code...
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
@@ -8,15 +7,6 @@ import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-dotenv.config();
-const PORT = process.env.PORT || 4000;
-
-// Validate JWT_SECRET at startup
-const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
-if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
-  console.error('[startup] FATAL: JWT_SECRET is missing or too short (must be at least 32 characters). Set a strong JWT_SECRET environment variable before starting the server.');
-  process.exit(1);
-}
 import customersRouter from './routes/customers.js';
 import carriersRouter from './routes/carriers.js';
 import invoicesRouter from './routes/invoices.js';
@@ -30,9 +20,32 @@ import invoiceImagesRouter from './routes/invoiceImages.js';
 import ediRouter from './routes/edi.js';
 import authRouter from './routes/auth.js';
 import auditsRouter from './routes/audits.js';
-import { verifyToken } from './middleware/auth.js';
+import loadsRouter from './routes/loads.js';
+import driversRouter from './routes/drivers.js';
+import vehiclesRouter from './routes/vehicles.js';
+import tripsRouter from './routes/trips.js';
+import locationsRouter from './routes/locations.js';
+import shipmentsRouter from './routes/shipments.js';
+import carrierProfilesRouter from './routes/carrierProfiles.js';
+import auditResultsRouter from './routes/auditResults.js';
+import freightIntelligenceRouter from './routes/freightIntelligence.js';
+import { verifyToken, requireDatabase } from './middleware/auth.js';
 
-// Load environment variables from .env (already loaded above)
+dotenv.config();
+
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+
+// Validate JWT_SECRET at startup
+const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
+if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
+  const msg = '[startup] JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.';
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(msg);
+  }
+  console.warn(`[startup] WARNING: ${msg}`);
+}
+
+// Locate MongoDB connection URI from supported environment variable names
 const mongoUriEnvKeys = ['MONGODB_URI', 'MONGODB_URL', 'MONGO_URL', 'MONGO_URI', 'DATABASE_URL'];
 const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
   const value = process.env[key];
@@ -41,29 +54,25 @@ const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
 const MONGODB_URI = (mongoUriEnvKey ? process.env[mongoUriEnvKey] : '').trim();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
-const SERVE_STATIC = process.env.SERVE_STATIC === 'true';
 const app = express();
-// ...existing code...
+app.set('trust proxy', 1);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, 'dist');
+const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 
 // Allow only Vercel frontend and custom domains for CORS
+// Add your Vercel production URL here (stable, non-expiring URLs only).
+// Use the CORS_ORIGIN Railway env variable for preview/dynamic URLs.
 const defaultAllowedOrigins = [
   'http://localhost:3000',
-  'https://express-git-fbpa-josephmabbinante-a11ys-projects.vercel.app',
-  'https://www.hdhtransport.com',
-  'https://hdhtransport.com',
-  'https://fbpa-f073sj7mi-josephmabbinante-a11ys-projects.vercel.app',
-  'https://fbpa-qh4fmw9tg-josephmabbinante-a11ys-projects.vercel.app',
-  'https://vercel.com/josephmabbinante-a11ys-projects/fbpa-ui'
-  , 'http://localhost:5173',
+  'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  ''
-  // Add any custom production domains here
+  'https://www.hdhtransport.com',
+  'https://hdhtransport.com',
+  // 'https://your-app.vercel.app', // <-- add your Vercel production URL here
 ];
-// ...existing code...
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
@@ -83,6 +92,10 @@ if (MONGODB_URI && !hasUriPlaceholders) {
   }
   mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    heartbeatFrequencyMS: 10000,
+    connectTimeoutMS: 10000,
   })
     .then(() => console.log('[mongodb] Connected'))
     .catch((err) => console.error('[mongodb] Connection error:', err.message));
@@ -146,9 +159,11 @@ app.use((req, res, next) => {
 // Serve static files from public/ unconditionally (before body parsers and API routes)
 app.use(express.static(path.join(__dirname, 'public')));
 
-console.log('[MIDDLEWARE] Before express.json()');
+// Return 204 No Content for favicon requests when no favicon.ico exists in public/,
+// preventing these requests from reaching the SPA catch-all or error handlers.
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use(express.json());
-console.log('[MIDDLEWARE] After express.json()');
 app.use(express.urlencoded({ extended: true }));
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
@@ -163,37 +178,65 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// API routes
-// ...existing code...
-app.use('/api/auth', authRouter);
-app.use('/api/audits', verifyToken, auditsRouter);
-app.use('/api/customers', verifyToken, customersRouter);
-app.use('/api/carriers', verifyToken, carriersRouter);
-app.use('/api/invoices', verifyToken, invoicesRouter);
-app.use('/api/exceptions', verifyToken, exceptionsRouter);
-app.use('/api/messages', verifyToken, messagesRouter);
-app.use('/api/rate-logic', verifyToken, rateLogicRouter);
-app.use('/api/dashboard', verifyToken, dashboardRouter);
-app.use('/api/reports', verifyToken, reportsRouter);
-app.use('/api/uploads', verifyToken, uploadsRouter);
-app.use('/api/invoice-images', verifyToken, invoiceImagesRouter);
-app.use('/api/edi', verifyToken, ediRouter);
-
+// Health endpoint — no auth required, before protected API routes
 app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
   const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
   res.json({
-    ok: true,
-    dbStatus,
-    uptimeSec: Math.round(process.uptime()),
+    status: 'ok',
+    database: dbStatus,
+    uptime: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
   });
 });
 
-// Root route redirects to login page
-app.get('/', (req, res) => {
-  res.redirect('/login.html');
+// API routes
+app.use('/api/auth', authRouter);
+app.use('/api/audits', verifyToken, requireDatabase, auditsRouter);
+app.use('/api/customers', verifyToken, requireDatabase, customersRouter);
+app.use('/api/carriers', verifyToken, requireDatabase, carriersRouter);
+app.use('/api/invoices', verifyToken, requireDatabase, invoicesRouter);
+app.use('/api/exceptions', verifyToken, requireDatabase, exceptionsRouter);
+app.use('/api/messages', verifyToken, messagesRouter);
+app.use('/api/rate-logic', verifyToken, rateLogicRouter);
+app.use('/api/dashboard', verifyToken, requireDatabase, dashboardRouter);
+app.use('/api/reports', verifyToken, requireDatabase, reportsRouter);
+app.use('/api/uploads', verifyToken, uploadsRouter);
+app.use('/api/invoice-images', verifyToken, invoiceImagesRouter);
+app.use('/api/edi', verifyToken, ediRouter);
+app.use('/api/loads', verifyToken, requireDatabase, loadsRouter);
+app.use('/api/drivers', verifyToken, requireDatabase, driversRouter);
+app.use('/api/vehicles', verifyToken, requireDatabase, vehiclesRouter);
+app.use('/api/trips', verifyToken, requireDatabase, tripsRouter);
+app.use('/api/locations', verifyToken, requireDatabase, locationsRouter);
+app.use('/api/shipments', verifyToken, requireDatabase, shipmentsRouter);
+app.use('/api/carrier-profiles', verifyToken, requireDatabase, carrierProfilesRouter);
+app.use('/api/audit-results', verifyToken, requireDatabase, auditResultsRouter);
+app.use('/api/freight-intelligence', verifyToken, requireDatabase, freightIntelligenceRouter);
+
+// Root route: serve React SPA when built, otherwise redirect to static login
+app.get('/', (req, res, next) => {
+  if (distIndexExists) {
+    next();
+  } else {
+    res.redirect('/login.html');
+  }
 });
+
+// Serve the React SPA from dist/ when it has been built.
+// This catch-all must be AFTER all API routes but BEFORE error handlers so that
+// client-side routes like /loads/loadbuilder are served index.html instead of 404.
+if (distIndexExists) {
+  app.use(express.static(distPath));
+  app.use((req, res, next) => {
+    if ((req.method !== 'GET' && req.method !== 'HEAD') || req.path.startsWith('/api')) {
+      next();
+      return;
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.use((err, req, res, next) => {
   if (err && typeof err.message === 'string' && err.message.startsWith('CORS origin not allowed:')) {
@@ -203,61 +246,62 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
-// Serve the React SPA from dist/ when it has been built.
-// This allows client-side routes like /login and /dashboard to work correctly.
-const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
-if (distIndexExists) {
-  app.use(express.static(distPath));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
-      next();
-      return;
+// Global catch-all error handler — must be after all API routes
+app.use((err, req, res, next) => {
+  console.error('[error] Unhandled route error:', err.message, err.stack);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({
+    ok: false,
+    error: err.message || 'Internal server error',
+  });
+});
+
+// Export the Express app for Vercel serverless function handler
+export default app;
+
+// Only start the HTTP server when running directly (not as a Vercel serverless function)
+if (!process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`FBPA API server running on port ${PORT}`);
+  });
+
+  // Graceful shutdown handling
+  const gracefulShutdown = async (signal) => {
+    console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
+    
+    // Stop accepting new connections
+    server.close(() => {
+      console.log('[shutdown] HTTP server closed');
+    });
+    
+    // Close database connections
+    if (mongoose.connection.readyState !== 0) {
+      try {
+        await mongoose.connection.close();
+        console.log('[shutdown] MongoDB connection closed');
+      } catch (err) {
+        console.error('[shutdown] Error closing MongoDB connection:', err.message);
+      }
     }
-    res.sendFile(path.join(distPath, 'index.html'));
+    
+    console.log('[shutdown] Graceful shutdown complete');
+    process.exit(0);
+  };
+
+  // Handle shutdown signals
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  // Handle uncaught errors
+  process.on('uncaughtException', (err) => {
+    console.error('[error] Uncaught exception:', err);
+    console.error('[error] Stack:', err.stack);
+    gracefulShutdown('uncaughtException').finally(() => process.exit(1));
+  });
+
+  // Log unhandled rejections but do NOT exit — transient MongoDB reconnection
+  // failures and similar async errors must not crash the running server.
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
   });
 }
-
-const server = app.listen(PORT, () => {
-  console.log(`FBPA API server running on http://localhost:${PORT}`);
-});
-
-// Graceful shutdown handling
-const gracefulShutdown = async (signal) => {
-  console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
-  
-  // Stop accepting new connections
-  server.close(() => {
-    console.log('[shutdown] HTTP server closed');
-  });
-  
-  // Close database connections
-  if (mongoose.connection.readyState !== 0) {
-    try {
-      await mongoose.connection.close();
-      console.log('[shutdown] MongoDB connection closed');
-    } catch (err) {
-      console.error('[shutdown] Error closing MongoDB connection:', err.message);
-    }
-  }
-  
-  console.log('[shutdown] Graceful shutdown complete');
-  process.exit(0);
-};
-
-// Handle shutdown signals
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// Handle uncaught errors
-process.on('uncaughtException', (err) => {
-  console.error('[error] Uncaught exception:', err);
-  console.error('[error] Stack:', err.stack);
-  // Exit immediately with error code for uncaught exceptions
-  process.exit(1);
-});
-
-// Log unhandled rejections but do NOT exit — transient MongoDB reconnection
-// failures and similar async errors must not crash the running server.
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[error] Unhandled rejection at:', promise, 'reason:', reason);
-});

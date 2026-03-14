@@ -51,6 +51,7 @@ router.post("/register", authLimiter, loginValidators, validate, async (req, res
     const accessToken = jwt.sign({ id: user.id, email: user.email, roles: user.roles }, secret, { expiresIn: process.env.JWT_EXPIRES_IN || '1h' });
 
     res.status(201).json({
+      token: accessToken,
       accessToken,
       user: { id: user.id, email: user.email, name: user.name, roles: user.roles },
     });
@@ -85,7 +86,7 @@ router.post("/login", authLimiter, loginValidators, validate, async (req, res) =
       }
       const token = jwt.sign({ id: user.id, email: user.email, roles: user.roles }, secret, { expiresIn: process.env.JWT_EXPIRES_IN || '1h' });
 
-      res.json({ success: true, message: "Login successful", token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
+      res.json({ success: true, message: "Login successful", token, accessToken: token, user: { id: user.id, email: user.email, name: user.name, roles: user.roles } });
   } catch (error) {
     console.error('[LOGIN] Error during login:', error);
       res.status(500).json({ success: false, message: error.message });

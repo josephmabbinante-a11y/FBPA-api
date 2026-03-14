@@ -296,8 +296,13 @@ router.post('/', async (req, res) => {
       carrierName: linkedCarrier?.name,
       carrier: linkedCarrier?.name || linkedCustomer?.name,
       invoiceNumber: invoiceNumberToCheck || `${type}-${Date.now()}`,
+      load_id: normalizeString(invoice.load_id),
       amount: toNumber(invoice.amount),
+      linehaul: toNumber(invoice.linehaul),
+      fuel: toNumber(invoice.fuel),
+      detention: toNumber(invoice.detention),
       accessorials: accessorialsValue,
+      accessorialItems: Array.isArray(invoice.accessorialItems) ? invoice.accessorialItems : [],
       fuelSurcharge: fuelSurchargeValue,
       contractRate: contractRateValue,
       status: normalizeString(invoice.status) || 'Pending',
@@ -360,6 +365,13 @@ router.patch('/:id', async (req, res) => {
     if (updates.accessorials !== undefined) invoice.accessorials = toNumber(updates.accessorials);
     if (updates.fuelSurcharge !== undefined) invoice.fuelSurcharge = toNumber(updates.fuelSurcharge);
     if (updates.contractRate !== undefined) invoice.contractRate = toNumber(updates.contractRate);
+    if (updates.load_id !== undefined) invoice.load_id = normalizeString(updates.load_id);
+    if (updates.linehaul !== undefined) invoice.linehaul = toNumber(updates.linehaul);
+    if (updates.fuel !== undefined) invoice.fuel = toNumber(updates.fuel);
+    if (updates.detention !== undefined) invoice.detention = toNumber(updates.detention);
+    if (updates.accessorialItems !== undefined && Array.isArray(updates.accessorialItems)) {
+      invoice.accessorialItems = updates.accessorialItems;
+    }
 
     invoice.updatedAt = new Date();
     await invoice.save();
