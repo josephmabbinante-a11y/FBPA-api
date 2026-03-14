@@ -71,7 +71,7 @@ const defaultAllowedOrigins = [
   'http://localhost:5175',
   'https://www.hdhtransport.com',
   'https://hdhtransport.com',
-  // 'https://your-app.vercel.app', // <-- add your Vercel production URL here
+  // 'https://fbpa-ui-git-fbpa-josephmabbinante-a11ys-projects.vercel.app/login, // <-- add your Vercel production URL here
 ];
 
 const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
