@@ -261,7 +261,6 @@ export default app;
 // Only start the HTTP server when running directly (not as a Vercel serverless function)
 if (!process.env.VERCEL) {
   const server = app.listen(PORT, () => {
-    console.log(`FBPA API server running on port ${PORT}`);
   });
 
   // Graceful shutdown handling
