@@ -33,7 +33,7 @@ import { verifyToken, requireDatabase } from './middleware/auth.js';
 
 dotenv.config();
 
-const PORT = parseInt(process.env.PORT, 10) || 3000;
+const PORT = parseInt(process.env.PORT, 10);
 
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
