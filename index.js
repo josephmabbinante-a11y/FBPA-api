@@ -34,12 +34,13 @@ import { verifyToken, requireDatabase } from './middleware/auth.js';
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
 if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
   const msg = '[startup] JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.';
-  if (process.env.NODE_ENV === 'production') {
+  if (NODE_ENV === 'production') {
     throw new Error(msg);
   }
   console.warn(`[startup] WARNING: ${msg}`);
@@ -52,9 +53,12 @@ const mongoUriEnvKey = mongoUriEnvKeys.find((key) => {
   return typeof value === 'string' && value.trim().length > 0;
 });
 const MONGODB_URI = (mongoUriEnvKey ? process.env[mongoUriEnvKey] : '').trim();
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const hasUriPlaceholders = /<[^>]+>/.test(MONGODB_URI);
+const databaseEnabled = Boolean(MONGODB_URI) && !hasUriPlaceholders;
+
 const app = express();
 app.set('trust proxy', 1);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, 'dist');
@@ -79,23 +83,24 @@ const envAllowedOrigins = (process.env.CORS_ORIGIN || '')
   .filter(Boolean);
 
 const allowedOrigins = new Set(
-  [...defaultAllowedOrigins, ...envAllowedOrigins]
-    .map((origin) => origin.trim().replace(/\/+$/, '').toLowerCase())
+  [...defaultAllowedOrigins, ...envAllowedOrigins].map((origin) =>
+    origin.trim().replace(/\/+$/, '').toLowerCase()
+  )
 );
 
-const hasUriPlaceholders = /<[^>]+>/.test(MONGODB_URI);
-
-if (MONGODB_URI && !hasUriPlaceholders) {
+if (databaseEnabled) {
   if (mongoUriEnvKey !== 'MONGODB_URI') {
     console.warn(`[mongodb] Using ${mongoUriEnvKey} (preferred key is MONGODB_URI).`);
   }
-  mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 8000,
-    socketTimeoutMS: 45000,
-    maxPoolSize: 10,
-    heartbeatFrequencyMS: 10000,
-    connectTimeoutMS: 10000,
-  })
+
+  mongoose
+    .connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 8000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      heartbeatFrequencyMS: 10000,
+      connectTimeoutMS: 10000,
+    })
     .then(() => console.log('[mongodb] Connected'))
     .catch((err) => console.error('[mongodb] Connection error:', err.message));
 
@@ -114,23 +119,25 @@ if (MONGODB_URI && !hasUriPlaceholders) {
 
 app.use(helmet());
 
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
 
-    const normalizedOrigin = origin.trim().replace(/\/+$/, '').toLowerCase();
-    if (allowedOrigins.has(normalizedOrigin)) {
-      callback(null, true);
-      return;
-    }
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '').toLowerCase();
+      if (allowedOrigins.has(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
 
-    callback(new Error(`CORS origin not allowed: ${origin}`));
-  },
-  credentials: true,
-}));
+      callback(new Error(`CORS origin not allowed: ${origin}`));
+    },
+    credentials: true,
+  })
+);
 
 // General API rate limiter — 300 requests per 15 minutes per IP
 const apiLimiter = rateLimit({
@@ -179,8 +186,13 @@ app.use((err, req, res, next) => {
 
 // Health endpoint — no auth required, before protected API routes
 app.get('/api/health', (req, res) => {
-  const dbState = mongoose.connection.readyState;
-  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+  let dbStatus = 'disabled';
+
+  if (databaseEnabled) {
+    const dbState = mongoose.connection.readyState;
+    dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+  }
+
   res.json({
     status: 'ok',
     database: dbStatus,
@@ -261,19 +273,26 @@ export default app;
 // Only start the HTTP server when running directly (not as a Vercel serverless function)
 if (!process.env.VERCEL) {
   const server = app.listen(PORT, () => {
+    console.log(`[startup] API listening on port ${PORT} (env=${NODE_ENV}, db=${databaseEnabled ? 'enabled' : 'disabled'})`);
   });
 
-  // Graceful shutdown handling
+  /**
+   * Graceful shutdown: close HTTP server and DB, then let caller decide exit code.
+   * IMPORTANT: Do not call process.exit() here; callers determine the exit code.
+   */
   const gracefulShutdown = async (signal) => {
     console.log(`\n[shutdown] Received ${signal}, starting graceful shutdown...`);
-    
+
     // Stop accepting new connections
-    server.close(() => {
-      console.log('[shutdown] HTTP server closed');
+    await new Promise((resolve) => {
+      server.close(() => {
+        console.log('[shutdown] HTTP server closed');
+        resolve();
+      });
     });
-    
-    // Close database connections
-    if (mongoose.connection.readyState !== 0) {
+
+    // Close database connections (if any)
+    if (databaseEnabled && mongoose.connection.readyState !== 0) {
       try {
         await mongoose.connection.close();
         console.log('[shutdown] MongoDB connection closed');
@@ -281,20 +300,30 @@ if (!process.env.VERCEL) {
         console.error('[shutdown] Error closing MongoDB connection:', err.message);
       }
     }
-    
+
     console.log('[shutdown] Graceful shutdown complete');
-    process.exit(0);
   };
 
-  // Handle shutdown signals
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  // Handle shutdown signals (exit code 0)
+  process.on('SIGTERM', () => {
+    gracefulShutdown('SIGTERM')
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+  });
 
-  // Handle uncaught errors
+  process.on('SIGINT', () => {
+    gracefulShutdown('SIGINT')
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+  });
+
+  // Handle uncaught errors (exit code 1)
   process.on('uncaughtException', (err) => {
     console.error('[error] Uncaught exception:', err);
     console.error('[error] Stack:', err.stack);
-    gracefulShutdown('uncaughtException').finally(() => process.exit(1));
+    gracefulShutdown('uncaughtException')
+      .then(() => process.exit(1))
+      .catch(() => process.exit(1));
   });
 
   // Log unhandled rejections but do NOT exit — transient MongoDB reconnection
