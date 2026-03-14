@@ -14,7 +14,8 @@ const PORT = process.env.PORT || 4000;
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
 if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
-  console.warn('[startup] WARNING: JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.');
+  console.error('[startup] FATAL: JWT_SECRET is missing or too short (must be at least 32 characters). Set a strong JWT_SECRET environment variable before starting the server.');
+  process.exit(1);
 }
 import customersRouter from './routes/customers.js';
 import carriersRouter from './routes/carriers.js';

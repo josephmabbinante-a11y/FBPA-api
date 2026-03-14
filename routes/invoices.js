@@ -243,21 +243,23 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'Duplicate invoice detected', duplicateInvoice });
     }
 
-    // Accessorial validation (simple: must be present and >= 0)
+    // Accessorial validation: allow missing, but reject negative or non-numeric values
     let accessorialsValue = 0;
-    if (typeof invoice.accessorials === 'number' && invoice.accessorials >= 0) {
-      accessorialsValue = invoice.accessorials;
-    } else {
-      // Create exception for invalid accessorials
-      await createException({
-        invoice: null,
-        type: 'financial',
-        reason: 'Invalid accessorials',
-        severity: 'Medium',
-        customer: linkedCustomer,
-        carrier: linkedCarrier,
-      });
-      return res.status(400).json({ error: 'Invalid or missing accessorials' });
+    if (invoice.accessorials !== undefined && invoice.accessorials !== null) {
+      const parsedAccessorials = Number(invoice.accessorials);
+      if (!Number.isFinite(parsedAccessorials) || parsedAccessorials < 0) {
+        // Create exception for invalid accessorials
+        await createException({
+          invoice: null,
+          type: 'financial',
+          reason: 'Invalid accessorials',
+          severity: 'Medium',
+          customer: linkedCustomer,
+          carrier: linkedCarrier,
+        });
+        return res.status(400).json({ error: 'Invalid or missing accessorials' });
+      }
+      accessorialsValue = parsedAccessorials;
     }
 
 

@@ -24,7 +24,7 @@
           "mode": "raw",
           "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"{{name}}\"\n}"
         },
-        "url": "{{base_url}}/api/v1/auth/signup"
+        "url": "{{base_url}}/api/auth/register"
       },
       "event": [
         {
