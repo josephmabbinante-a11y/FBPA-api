@@ -24,6 +24,17 @@
 			"args": [],
 			"problemMatcher": [],
 			"group": "test"
+		},
+		{
+			"label": "Build and Run App",
+			"type": "shell",
+			"command": "npm run build && npm start",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
 		}
 	]
 }

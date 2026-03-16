@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useAuth } from '../lib/AuthContext.js';
 import { useNavigate, Link } from 'react-router-dom';
 
 const rawApiBase = import.meta.env.VITE_API_URL;
 const API_BASE = rawApiBase ? rawApiBase.trim().replace(/\/+$/, '') : '';
+
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -10,6 +12,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -23,7 +26,7 @@ export default function LoginForm() {
       });
       const data = await res.json();
       if (res.ok && data.token) {
-        localStorage.setItem('accessToken', data.token);
+        login(data.token);
         navigate('/dashboard');
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');

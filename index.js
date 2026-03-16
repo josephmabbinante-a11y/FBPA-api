@@ -223,6 +223,14 @@ app.use('/api/trips', verifyToken, requireDatabase, tripsRouter);
 app.use('/api/locations', verifyToken, requireDatabase, locationsRouter);
 app.use('/api/shipments', verifyToken, requireDatabase, shipmentsRouter);
 app.use('/api/carrier-profiles', verifyToken, requireDatabase, carrierProfilesRouter);
+
+// Custom health/saia and tracker endpoints (scaffolded)
+import healthSaiaRouter from './routes/healthSaia.js';
+import trackerRouter from './routes/tracker.js';
+
+app.use('/api/health/saia', healthSaiaRouter);
+app.use('/api/tracker', trackerRouter);
+
 app.use('/api/audit-results', verifyToken, requireDatabase, auditResultsRouter);
 app.use('/api/freight-intelligence', verifyToken, requireDatabase, freightIntelligenceRouter);
 

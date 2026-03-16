@@ -1,4 +1,4 @@
-const rawApiBase = (import.meta.env.VITE_API_URL || '').trim();
+npm run const rawApiBase = (import.meta.env.VITE_API_URL || '').trim();
 export const API_BASE = rawApiBase.replace(/\/+$/, '');
 
 export function authHeaders() {
@@ -13,4 +13,19 @@ export function handle401(res) {
     return true;
   }
   return false;
+}
+
+// Fetch live truckload rate from backend
+export async function fetchLiveRate({ origin, destination, equipment = 'Van', laneType = 'Line Haul', mileage }) {
+  const res = await fetch(`${API_BASE}/api/rate-logic/calculate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    },
+    body: JSON.stringify({ origin, destination, equipment, laneType, mileage }),
+  });
+  if (handle401(res)) return null;
+  if (!res.ok) throw new Error(`Rate API error: ${res.status}`);
+  return res.json();
 }

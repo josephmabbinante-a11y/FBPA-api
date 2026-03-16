@@ -1,8 +1,26 @@
+
 import express from 'express';
 import Carrier from '../models/Carrier.js';
 import Invoice from '../models/Invoice.js';
 
 const router = express.Router();
+
+// Get carrier by DOT number (FMCSA snapshot)
+router.get('/fmcsa/snapshot', async (req, res) => {
+  try {
+    const { dotNumber } = req.query;
+    if (!dotNumber) {
+      return res.status(400).json({ error: 'dotNumber query parameter is required' });
+    }
+    const carrier = await Carrier.findOne({ dotNumber: dotNumber.toString() });
+    if (!carrier) {
+      return res.status(404).json({ error: 'Carrier not found for provided dotNumber' });
+    }
+    res.json(carrier);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 const normalizeString = (value) => (value || '').trim();
 const normalizeKey = (value) => normalizeString(value).toLowerCase();
