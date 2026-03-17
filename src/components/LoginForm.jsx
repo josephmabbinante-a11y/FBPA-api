@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../lib/AuthContext.js';
+import { useAuth } from '../lib/AuthContext.jsx';
 import { useNavigate, Link } from 'react-router-dom';
 
 const rawApiBase = import.meta.env.VITE_API_URL;
