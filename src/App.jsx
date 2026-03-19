@@ -8,7 +8,7 @@ import Exceptions from './pages/Exceptions.jsx';
 
 import LoginForm from './components/LoginForm.jsx';
 import RegisterForm from './components/RegisterForm.jsx';
-import { AuthProvider, useAuth } from './lib/AuthContext.js';
+import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 
 
 function PrivateRoute({ children }) {
