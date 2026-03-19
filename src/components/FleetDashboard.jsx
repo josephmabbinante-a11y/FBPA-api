@@ -142,109 +142,54 @@ export default function FleetDashboard() {
   }, []);
 
   const containerStyle = {
-    return (
-      <div style={containerStyle}>
-        <h1 style={headingStyle}>Fleet Dashboard</h1>
-        <p style={subheadingStyle}>Freight Billing &amp; Payment Audit Overview</p>
+    padding: '2rem',
+    fontFamily: 'var(--font-family)',
+    background: 'var(--bg)',
+    minHeight: '100vh',
+  };
 
-        {/* Live Rate Calculator UI */}
-        <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Live Truckload Rate Calculator</h2>
-          <form onSubmit={handleRateSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-            <div>
-              <label>Origin<br />
-                <input name="origin" value={rateParams.origin} onChange={handleRateInput} required style={{ width: 120 }} />
-              </label>
-            </div>
-            <div>
-              <label>Destination<br />
-                <input name="destination" value={rateParams.destination} onChange={handleRateInput} required style={{ width: 120 }} />
-              </label>
-            </div>
-            <div>
-              <label>Equipment<br />
-                <select name="equipment" value={rateParams.equipment} onChange={handleRateInput}>
-                  <option value="Van">Van</option>
-                  <option value="Reefer">Reefer</option>
-                  <option value="Flatbed">Flatbed</option>
-                </select>
-              </label>
-            </div>
-            <div>
-              <label>Lane Type<br />
-                <select name="laneType" value={rateParams.laneType} onChange={handleRateInput}>
-                  <option value="Line Haul">Line Haul</option>
-                  <option value="Regional">Regional</option>
-                  <option value="Local">Local</option>
-                </select>
-              </label>
-            </div>
-            <div>
-              <label>Mileage<br />
-                <input name="mileage" type="number" min="1" value={rateParams.mileage} onChange={handleRateInput} required style={{ width: 80 }} />
-              </label>
-            </div>
-            <button type="submit" disabled={rateLoading} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: 'var(--primary)', color: '#fff', border: 'none', fontWeight: 600 }}>
-              {rateLoading ? 'Calculating…' : 'Get Rate'}
-            </button>
-          </form>
-          {rateError && <div style={{ color: 'var(--danger)', marginTop: 8 }}>{rateError}</div>}
-          {rateResult && (
-            <div style={{ marginTop: 16, background: 'var(--bg-alt)', padding: 12, borderRadius: 8 }}>
-              <strong>Your Live Quote:</strong> <span style={{ color: 'var(--primary)' }}>${rateResult.quote}</span> <br />
-              <strong>Confidence:</strong> {rateResult.confidence}% <br />
-              <strong>Market Position:</strong> {rateResult.marketPosition}
-            </div>
-          )}
+  const headingStyle = {
+    fontSize: '1.8rem',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    marginBottom: '0.25rem',
+  };
 
-        </div>
+  const subheadingStyle = {
+    color: 'var(--text-secondary)',
+    fontSize: '0.95rem',
+    marginBottom: '2rem',
+  };
 
-        <div style={statsRowStyle}>
-          <StatCard label="Total Invoices" value={summary?.totalInvoices ?? '—'} />
-          <StatCard
-            label="Total Exceptions"
-            value={summary?.totalExceptions ?? '—'}
-            color="var(--warning)"
-          />
-          <StatCard
-            label="Total Savings"
-            value={summary?.totalSavings != null ? `$${Number(summary.totalSavings).toLocaleString()}` : '—'}
-            color="var(--success)"
-          />
-          <StatCard
-            label="Pending Review"
-            value={summary?.pendingReview ?? '—'}
-            color="var(--danger)"
-          />
-        </div>
+  const statsRowStyle = {
+    display: 'flex',
+    gap: '1.5rem',
+    flexWrap: 'wrap',
+    marginBottom: '2rem',
+  };
 
-        {recentActivity && recentActivity.length > 0 && (
-          <div style={tableContainerStyle}>
-            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontSize: '1rem', fontWeight: '600' }}>Recent Activity</h2>
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={tableStyle}>
-                <thead style={theadStyle}>
-                  <tr>
-                    <th style={{ padding: '0.75rem 1rem' }}>Type</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Invoice #</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Carrier</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Amount</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentActivity.map((item, idx) => (
-                    <ActivityRow key={item.id || idx} item={item} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const tableContainerStyle = {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    marginTop: '2rem',
+  };
+
+  const tableStyle = {
+    width: '100%',
+    borderCollapse: 'collapse',
+  };
+
+  const theadStyle = {
+    background: 'var(--bg-alt)',
+    color: 'var(--text-secondary)',
+    fontSize: '0.8rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  };
+
+  if (loading) {
     return (
       <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: 'var(--text-secondary)' }}>Loading dashboard…</p>
@@ -266,6 +211,57 @@ export default function FleetDashboard() {
     <div style={containerStyle}>
       <h1 style={headingStyle}>Fleet Dashboard</h1>
       <p style={subheadingStyle}>Freight Billing &amp; Payment Audit Overview</p>
+
+      {/* Live Rate Calculator UI */}
+      <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Live Truckload Rate Calculator</h2>
+        <form onSubmit={handleRateSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
+          <div>
+            <label>Origin<br />
+              <input name="origin" value={rateParams.origin} onChange={handleRateInput} required style={{ width: 120 }} />
+            </label>
+          </div>
+          <div>
+            <label>Destination<br />
+              <input name="destination" value={rateParams.destination} onChange={handleRateInput} required style={{ width: 120 }} />
+            </label>
+          </div>
+          <div>
+            <label>Equipment<br />
+              <select name="equipment" value={rateParams.equipment} onChange={handleRateInput}>
+                <option value="Van">Van</option>
+                <option value="Reefer">Reefer</option>
+                <option value="Flatbed">Flatbed</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>Lane Type<br />
+              <select name="laneType" value={rateParams.laneType} onChange={handleRateInput}>
+                <option value="Line Haul">Line Haul</option>
+                <option value="Regional">Regional</option>
+                <option value="Local">Local</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>Mileage<br />
+              <input name="mileage" type="number" min="1" value={rateParams.mileage} onChange={handleRateInput} required style={{ width: 80 }} />
+            </label>
+          </div>
+          <button type="submit" disabled={rateLoading} style={{ padding: '0.5rem 1.2rem', borderRadius: 6, background: 'var(--primary)', color: '#fff', border: 'none', fontWeight: 600 }}>
+            {rateLoading ? 'Calculating…' : 'Get Rate'}
+          </button>
+        </form>
+        {rateError && <div style={{ color: 'var(--danger)', marginTop: 8 }}>{rateError}</div>}
+        {rateResult && (
+          <div style={{ marginTop: 16, background: 'var(--bg-alt)', padding: 12, borderRadius: 8 }}>
+            <strong>Your Live Quote:</strong> <span style={{ color: 'var(--primary)' }}>${rateResult.quote}</span> <br />
+            <strong>Confidence:</strong> {rateResult.confidence}% <br />
+            <strong>Market Position:</strong> {rateResult.marketPosition}
+          </div>
+        )}
+      </div>
 
       <div style={statsRowStyle}>
         <StatCard label="Total Invoices" value={summary?.totalInvoices ?? '—'} />
