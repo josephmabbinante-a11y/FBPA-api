@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { useNavigate, Link } from 'react-router-dom';
-
-const rawApiBase = import.meta.env.VITE_API_URL;
-const API_BASE = rawApiBase ? rawApiBase.trim().replace(/\/+$/, '') : '';
+import { API_BASE } from '../lib/api.js';
 
 
 export default function LoginForm() {
