@@ -29,6 +29,8 @@ import shipmentsRouter from './routes/shipments.js';
 import carrierProfilesRouter from './routes/carrierProfiles.js';
 import auditResultsRouter from './routes/auditResults.js';
 import freightIntelligenceRouter from './routes/freightIntelligence.js';
+import healthSaiaRouter from './routes/healthSaia.js';
+import trackerRouter from './routes/tracker.js';
 import { verifyToken, requireDatabase } from './middleware/auth.js';
 
 dotenv.config();
@@ -225,9 +227,6 @@ app.use('/api/shipments', verifyToken, requireDatabase, shipmentsRouter);
 app.use('/api/carrier-profiles', verifyToken, requireDatabase, carrierProfilesRouter);
 
 // Custom health/saia and tracker endpoints (scaffolded)
-import healthSaiaRouter from './routes/healthSaia.js';
-import trackerRouter from './routes/tracker.js';
-
 app.use('/api/health/saia', healthSaiaRouter);
 app.use('/api/tracker', trackerRouter);
 
