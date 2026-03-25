@@ -41,7 +41,14 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // Validate JWT_SECRET at startup
 const jwtSecretCheck = typeof process.env.JWT_SECRET === 'string' ? process.env.JWT_SECRET.trim() : '';
 if (!jwtSecretCheck || jwtSecretCheck.length < 32) {
-  const msg = '[startup] JWT_SECRET is missing or too short (must be at least 32 characters). Authentication will fail.';
+  const msg = [
+    '[startup] JWT_SECRET is missing or too short (must be at least 32 characters).',
+    'Fix: set JWT_SECRET in your environment.',
+    '  • Railway: Dashboard → your service → Variables → add JWT_SECRET',
+    '  • Generate a secure value: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"',
+    '  • Or: openssl rand -hex 48',
+    'See docs/railway.md for full deployment instructions.',
+  ].join('\n');
   if (NODE_ENV === 'production') {
     throw new Error(msg);
   }
