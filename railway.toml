@@ -4,11 +4,24 @@ buildCommand = "npm install && npm run build"
 
 [deploy]
 startCommand = "node index.js"
-restartPolicyType = "on_failure"
+restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 
-[[deploy.environmentVariables]]
-name = "NODE_ENV"
-value = "production"
+# ──────────────────────────────────────────────────────────────────────────────
+# Required Railway environment variables (set these in the Railway dashboard):
+#
+#   NODE_ENV       = production
+#   JWT_SECRET     = <random string, 32+ characters>
+#   MONGODB_URI    = <your MongoDB Atlas connection string>
+#   CORS_ORIGIN    = <comma-separated list of allowed frontend origins>
+#
+# Optional:
+#   JWT_EXPIRES_IN = 8h          (default: 8h)
+#   PORT           = 3000        (Railway sets this automatically)
+#   SMTP_HOST      = ...
+#   SMTP_USER      = ...
+#   SMTP_PASS      = ...
+#   SMTP_FROM      = ...
+# ──────────────────────────────────────────────────────────────────────────────
