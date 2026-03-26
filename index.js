@@ -128,25 +128,29 @@ if (databaseEnabled) {
 
 app.use(helmet());
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
+const corsMiddleware = cors({
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
 
-      const normalizedOrigin = origin.trim().replace(/\/+$/, '').toLowerCase();
-      if (allowedOrigins.has(normalizedOrigin)) {
-        callback(null, true);
-        return;
-      }
+    const normalizedOrigin = origin.trim().replace(/\/+$/, '').toLowerCase();
+    if (allowedOrigins.has(normalizedOrigin)) {
+      callback(null, true);
+      return;
+    }
 
-      callback(new Error(`CORS origin not allowed: ${origin}`));
-    },
-    credentials: true,
-  })
-);
+    callback(new Error(`CORS origin not allowed: ${origin}`));
+  },
+  credentials: true,
+});
+
+// Apply CORS only to API routes. Static file requests (Vite assets, etc.) are served
+// from the same origin as the HTML and must not pass through origin validation —
+// Vite emits <script type="module" crossorigin> which causes browsers to include an
+// Origin header on asset requests, and a CORS rejection would return 403 for those files.
+app.use('/api/', corsMiddleware);
 
 // General API rate limiter — 300 requests per 15 minutes per IP
 const apiLimiter = rateLimit({
