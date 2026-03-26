@@ -24,4 +24,15 @@ healthcheckTimeout = 30
 #   SMTP_USER      = ...
 #   SMTP_PASS      = ...
 #   SMTP_FROM      = ...
+#
+# VITE_API_URL — frontend build-time variable (READ CAREFULLY):
+#   This is baked into the React bundle during "npm run build".
+#   • If the frontend and backend are on the SAME Railway service (this repo),
+#     do NOT set VITE_API_URL (leave it empty/unset). The app uses relative
+#     /api/* paths that hit the same Express server automatically.
+#     Setting it to a wrong or protocol-less value (e.g. "my-app.up.railway.app"
+#     without "https://") will cause "Network error" on the login page.
+#   • Only set VITE_API_URL if the React frontend is hosted on a separate service
+#     (e.g. Vercel). In that case use the full URL:
+#     VITE_API_URL=https://fbpa-api-production.up.railway.app
 # ──────────────────────────────────────────────────────────────────────────────

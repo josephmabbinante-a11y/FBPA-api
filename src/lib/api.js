@@ -1,5 +1,13 @@
+// When the frontend and backend are deployed on the same Railway service (monorepo),
+// leave VITE_API_URL unset so all /api/* calls use relative paths on the same origin.
+// Only set VITE_API_URL if the frontend is hosted separately from the backend.
 const rawApiBase = (import.meta.env.VITE_API_URL || '').trim();
-export const API_BASE = rawApiBase.replace(/\/+$/, '');
+const strippedApiBase = rawApiBase.replace(/\/+$/, '');
+// Auto-add https:// if a host was provided without a protocol to prevent silent network errors.
+export const API_BASE =
+  strippedApiBase && !strippedApiBase.startsWith('http://') && !strippedApiBase.startsWith('https://')
+    ? `https://${strippedApiBase}`
+    : strippedApiBase;
 
 export function authHeaders() {
   const token = localStorage.getItem('accessToken');
